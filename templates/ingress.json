@@ -1,0 +1,38 @@
+{
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "Ingress",
+    "metadata": {
+      "name": "",
+      "annotations": {
+        "nginx.ingress.kubernetes.io/rewrite-target": "/$2",
+        "nginx.ingress.kubernetes.io/proxy-body-size": "1000M"
+      },"labels": {
+        "app": "app"
+      }
+    },
+    "spec": {
+      "selector": {
+        "app": "app"
+      },
+      "rules": [
+        {
+          "http": {
+            "paths": [
+              {
+                "path": "",
+                "pathType": "Prefix",
+                "backend": {
+                  "service": {
+                    "name": "",
+                    "port": {
+                      "number": 0
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
