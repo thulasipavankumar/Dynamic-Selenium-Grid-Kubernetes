@@ -8,8 +8,19 @@ type Deployment struct {
 	service Service
 	ingress Ingress
 }
+type Details struct {
+	PodName     string
+	ServiceName string
+	IngressName string
+}
 
+func (d *Deployment) GetDetails() Details {
+	return Details{}
+}
 func (d *Deployment) Deploy() {
+	d.deployService()
+	d.deployIngress()
+	d.deployPod()
 
 }
 
