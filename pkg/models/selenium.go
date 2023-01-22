@@ -43,7 +43,9 @@ func CreateSession(m []byte, posturl string) (response Response) {
 	client := &http.Client{}
 	res, err := client.Do(r)
 	//defer res.Body.Close()
-
+	if err != nil {
+		return Response{nil, err, 422}
+	}
 	newSession := selenim{}
 	if res.StatusCode == http.StatusOK {
 		//utils.ParseBody(res, newSession)
