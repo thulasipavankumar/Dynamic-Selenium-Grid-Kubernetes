@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
@@ -13,15 +15,27 @@ func init() {
 
 }
 func Create_selenium_controller(w http.ResponseWriter, r *http.Request) {
-
+	Create_Selenium_Session(w, r)
+}
+func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	responseData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-	fmt.Println(string(responseData))
-	data, err := models.CreateSession(responseData, "https://box.ic.ing.net/ingress/tchp/default/hub/session")
+	log.Printf("Got data: %v \n", string(responseData))
+	response := models.CreateSession(responseData, os.Getenv("hub_url"))
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	w.WriteHeader(response.GetResponseCode())
+	if response.GetErr() != nil {
+		errData := struct {
+			Err string
+		}{
+			Err: response.GetErr().Error(),
+		}
+		return_data, _ := json.Marshal(&errData)
+		w.Write(return_data)
+	} else {
+		w.Write(response.GetResponseData())
+	}
 }

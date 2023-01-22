@@ -19,8 +19,23 @@ type selenim struct {
 		} `json:"capabilities"`
 	} `json:"value"`
 }
+type Response struct {
+	resData      []byte
+	err          error
+	responseCode int
+}
 
-func CreateSession(m []byte, posturl string) (resData []byte, err error) {
+func (r Response) GetResponseData() (byteSlice []byte) {
+	return r.resData
+}
+func (r Response) GetErr() error {
+	return r.err
+}
+func (r Response) GetResponseCode() int {
+	return r.responseCode
+}
+
+func CreateSession(m []byte, posturl string) (response Response) {
 	r, err := http.NewRequest("POST", posturl, bytes.NewBuffer(m))
 	if err != nil {
 		panic(err)
@@ -38,12 +53,13 @@ func CreateSession(m []byte, posturl string) (resData []byte, err error) {
 		}
 		err = json.Unmarshal([]byte(data), &newSession)
 		log.Println("erro: ", err, string(data))
-		log.Printf(" data is %#v", newSession.Value)
-		return data, nil
+		//	log.Printf(" data is %v", newSession.Value)
+		return Response{data, nil, res.StatusCode}
 
 	} else {
-		log.Printf("Unkown response %v, %#v", res.StatusCode, res.Body)
-		return nil, fmt.Errorf("An error occurred whilemake json call")
+		log.Printf("Unkown response %v, %v \n", res.StatusCode, res.Body)
+		return Response{nil, fmt.Errorf("An error occurred whilemake json call"), res.StatusCode}
+
 	}
 
 }
