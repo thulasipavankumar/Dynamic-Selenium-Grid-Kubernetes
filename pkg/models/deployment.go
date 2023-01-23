@@ -36,15 +36,13 @@ func (d *Deployment) deployIngress() {
 
 type Pod struct {
 	Image string `json:"title" bson:"title"`
-	// Author    string             `json:"author" bson:"author,omitempty"`
-	Port int `json:"createdAt" bson:"createdAt"`
-	Env  []map[string]string
-	app  string
+	Port  int    `json:"createdAt" bson:"createdAt"`
+	Env   []map[string]string
+	app   string
 }
 type Ingress struct {
-	Name string `json:"title" bson:"title"`
-	// Author    string             `json:"author" bson:"author,omitempty"`
-	Service_Port int `json:"createdAt" bson:"createdAt"`
+	Name         string `json:"title" bson:"title"`
+	Service_Port int    `json:"createdAt" bson:"createdAt"`
 
 	App         string
 	Serice_Name string

@@ -8,3 +8,7 @@ To do unit testing use the below command
 ```bash
 go test ./...
 ```
+
+## Selenium Tasks
+- [ ] Create session and pass on response object
+- [ ] Delete session and pass on response object

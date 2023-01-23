@@ -17,3 +17,11 @@ func ParseBody(r *http.Response, x interface{}) {
 	}
 
 }
+func ConstructCreateSessionURL(givenUrl string) (url string) {
+	url = givenUrl + "session"
+	return
+}
+func ConstructDeleteSessionURL(sessionId, givenUrl string) (url string) {
+	url = ConstructCreateSessionURL(givenUrl) + "/" + sessionId
+	return
+}
