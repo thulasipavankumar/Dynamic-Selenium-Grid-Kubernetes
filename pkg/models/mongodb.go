@@ -1,5 +1,7 @@
 package models
 
+import "log"
+
 type model struct {
 	sessionId   string
 	podName     string
@@ -7,8 +9,8 @@ type model struct {
 	ingressName string
 }
 
-func WriteCreateSessionToDb() {
-
+func WriteCreateSessionToDb(m model) {
+	log.Println("Writing to db", m)
 }
 func updateDeleteSessionToDb() {
 

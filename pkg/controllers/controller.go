@@ -28,8 +28,14 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 		os.Exit(1)
 	}
 	log.Printf("Got data: %v \n", string(responseData))
-	response := models.CreateSession(responseData, utils.ConstructCreateSessionURL(os.Getenv("hub_url")))
+	session := models.Session{}
+	json.Unmarshal([]byte(responseData), &session)
 	w.Header().Set("Content-Type", "application/json")
+	if !session.IsValidSession() {
+		log.Println(`Please pass a valid session`)
+	}
+	response := models.CreateSession(responseData, utils.ConstructCreateSessionURL(os.Getenv("hub_url")))
+
 	w.WriteHeader(response.GetResponseCode())
 	if response.GetErr() != nil {
 		errData := struct {

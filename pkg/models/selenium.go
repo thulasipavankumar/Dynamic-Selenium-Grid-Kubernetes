@@ -53,7 +53,7 @@ func CreateSession(m []byte, posturl string) (response Response) {
 		//utils.ParseBody(res, newSession)
 		data, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 		err = json.Unmarshal([]byte(data), &newSession)
 		log.Println("erro: ", err, string(data))
@@ -84,7 +84,7 @@ func DeleteSession(sessionId, deleteUrl string) (response Response) {
 		//utils.ParseBody(res, newSession)
 		data, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 		//	log.Printf(" data is %v", newSession.Value)
 		return Response{data, nil, res.StatusCode}
