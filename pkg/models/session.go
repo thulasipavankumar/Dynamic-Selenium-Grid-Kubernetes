@@ -1,5 +1,28 @@
 package models
 
+/*
+https://w3c.github.io/webdriver/#processing-capabilities
+
+{
+    "capabilities": {
+        "alwaysMatch": {
+            "cloud:user": "alice",
+            "cloud:password": "hunter2",
+            "platformName": "linux"
+        },
+        "firstMatch": [
+            {"browserName": "chrome"},
+            {"browserName": "edge"}
+        ]
+    }
+}
+Once all capabilities are merged from this example, an endpoint node would receive New Session capabilities identical to:
+
+[
+    {"browserName": "chrome", "platformName": "linux"},
+    {"browserName": "edge", "platformName": "linux"}
+]
+*/
 type Session struct {
 	Capabilities struct {
 		AlwaysMatch struct {

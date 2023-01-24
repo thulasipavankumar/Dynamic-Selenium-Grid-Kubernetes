@@ -25,3 +25,14 @@ func ConstructDeleteSessionURL(sessionId, givenUrl string) (url string) {
 	url = ConstructCreateSessionURL(givenUrl) + "/" + sessionId
 	return
 }
+func Send_Error_To_Client(e ErrorTemplate, w http.ResponseWriter) {
+	return_data, _ := json.Marshal(&e)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(e.ErrorCode)
+	w.Write(return_data)
+}
+
+type ErrorTemplate struct {
+	ErrorMessage string
+	ErrorCode    int
+}
