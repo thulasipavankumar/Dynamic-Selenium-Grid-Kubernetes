@@ -11,4 +11,4 @@ go test ./...
 
 ## Selenium Tasks
 - [ ] Create session and pass on response object
-- [ ] Delete session and pass on response object
+- [x] Delete session and pass on response object

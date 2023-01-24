@@ -2,13 +2,13 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
 )
@@ -24,23 +24,37 @@ func Create_selenium_controller(w http.ResponseWriter, r *http.Request) {
 func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	responseData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Print(err.Error())
-		os.Exit(1)
+		utils.Send_Error_To_Client(utils.ErrorTemplate{
+			ErrorMessage: (err.Error()),
+			ErrorCode:    constants.Unable_TO_READ_REQUEST_DATA,
+		}, w)
+
+		return
 	}
 	log.Printf("Got data: %v \n", string(responseData))
-	response := models.CreateSession(responseData, utils.ConstructCreateSessionURL(os.Getenv("hub_url")))
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(response.GetResponseCode())
-	if response.GetErr() != nil {
-		errData := struct {
-			Err string
-		}{
-			Err: response.GetErr().Error(),
-		}
-		return_data, _ := json.Marshal(&errData)
-		w.Write(return_data)
+	session := models.Session{}
+	err = json.Unmarshal([]byte(responseData), &session)
+	if err != nil {
+		utils.Send_Error_To_Client(utils.ErrorTemplate{
+			ErrorMessage: (err.Error()),
+			ErrorCode:    constants.Unable_TO_UNMARSHALL_JSON,
+		}, w)
+		return
+	}
+	if !session.IsValidSession() {
+		log.Println(`Please pass a valid session`)
+	}
+	session_result := models.CreateSession(responseData, utils.ConstructCreateSessionURL(os.Getenv("hub_url")))
+
+	if session_result.GetErr() != nil {
+		utils.Send_Error_To_Client(utils.ErrorTemplate{
+			ErrorMessage: session_result.GetErr().Error(),
+			ErrorCode:    session_result.GetResponseCode(),
+		}, w)
+
 	} else {
-		w.Write(response.GetResponseData())
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(session_result.GetResponseData())
 	}
 }
 func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
@@ -49,17 +63,14 @@ func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Got sessionId: %v \n", string(sessionId))
 	response := models.DeleteSession(sessionId, utils.ConstructDeleteSessionURL(sessionId, os.Getenv("hub_url")))
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(response.GetResponseCode())
+
 	if response.GetErr() != nil {
-		errData := struct {
-			Err string
-		}{
-			Err: response.GetErr().Error(),
-		}
-		return_data, _ := json.Marshal(&errData)
-		w.Write(return_data)
+		utils.Send_Error_To_Client(utils.ErrorTemplate{
+			ErrorMessage: response.GetErr().Error(),
+			ErrorCode:    response.GetResponseCode(),
+		}, w)
 	} else {
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(response.GetResponseData())
 	}
 }
