@@ -1,4 +1,4 @@
-package models
+package utils
 
 type Response struct {
 	ResData      []byte

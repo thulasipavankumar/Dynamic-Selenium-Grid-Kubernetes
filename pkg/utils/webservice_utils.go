@@ -2,27 +2,30 @@ package utils
 
 import (
 	"bytes"
-	"fmt"
-	"log"
+	"io/ioutil"
 	"net/http"
 
-	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models"
+	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
 )
 
 func Make_Get_Call(url string) {
 
 }
-func Make_Post_Call(url string, body []byte) models.Response {
+func Make_Post_Call(url string, body []byte) Response {
 	r, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
-		log.Panicln(err)
+		return Response{ResData: nil, Err: err, ResponseCode: constants.Unable_TO_CREATE_REQUEST_OBJECT}
 	}
 	client := &http.Client{}
 	res, err := client.Do(r)
-	//defer res.Body.Close()
+
 	if err != nil {
-		return models.Response{ResData: nil, Err: err, ResponseCode: 422}
-	} else {
-		return models.Response{ResData: nil, Err: fmt.Errorf("An error occurred whilemake json call status code is not 200"), ResponseCode: res.StatusCode}
+		return Response{ResData: nil, Err: err, ResponseCode: constants.Unable_TO_CREATE_CLIENT_OBJECT}
 	}
+	data, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		return Response{ResData: nil, Err: err, ResponseCode: constants.Unable_TO_READ_REQUEST_DATA}
+	}
+	return Response{ResData: data, Err: nil, ResponseCode: res.StatusCode}
 }

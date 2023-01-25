@@ -84,4 +84,6 @@ func (p *Pod) GetName() (name string) {
 func (p *Pod) SetValues() {
 	p.Kind = POD_KIND
 	p.APIVersion = POD_API_VERSION
+	p.appendHubContainer()
+	p.appendNodeContainer()
 }
