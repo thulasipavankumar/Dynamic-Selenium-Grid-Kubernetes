@@ -1,47 +1,42 @@
 {
-    "apiVersion": "v1",
-    "kind": "Pod",
-    "metadata": {
-        "generateName": "",
-        "labels": {
-            "app": "app"
-          }
-    },
-    "spec": {
-        "selector": {
-            "app": "app"
-          },
-        "containers": [
-            {
-                "env": [
-                                      {
-                        "name": "",
-                        "value": ""
-                    }
+	"apiVersion": "v1",
+	"kind": "Pod",
+	"metadata": {
+		"generateName": "",
+		"labels": {
+			"app": "app"
+		}
+	},
+	"spec": {
+		"selector": {
+			"app": "app"
+		},
+		"containers": [{
+			"env": [{
+					"name": "",
+					"value": ""
+				}
 
-                ],
-                "image": "",
-                "imagePullPolicy": "IfNotPresent",
-                "name": "",
-                "resources": {
-                    "limits": {
-                        "cpu": "",
-                        "memory": ""
-                    },
-                    "requests": {
-                        "cpu": "",
-                        "memory": ""
-                    }
-                },
-                "ports": [
-                    {
-                        "containerPort": 0,
-                        "protocol": "TCP"
-                    }
-                ]
-                
-            }
-        ],
-        "restartPolicy": "Never"
-    }
+			],
+			"image": "",
+			"imagePullPolicy": "IfNotPresent",
+			"name": "",
+			"resources": {
+				"limits": {
+					"cpu": "",
+					"memory": ""
+				},
+				"requests": {
+					"cpu": "",
+					"memory": ""
+				}
+			},
+			"ports": [{
+				"containerPort": 0,
+				"protocol": "TCP"
+			}]
+
+		}],
+		"restartPolicy": "Never"
+	}
 }

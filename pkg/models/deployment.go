@@ -1,7 +1,9 @@
 package models
 
-type deploy interface {
+type template interface {
 	Deploy()
+	SetValues()
+	GetName() string
 }
 type Deployment struct {
 	pod     Pod
@@ -15,50 +17,28 @@ type Details struct {
 }
 
 func (d *Deployment) GetDetails() Details {
-	return Details{}
+	return Details{
+		PodName:     d.pod.GetName(),
+		ServiceName: d.service.GetName(),
+		IngressName: d.ingress.GetName(),
+	}
 }
 func (d *Deployment) Deploy() {
 	d.deployService()
-	d.deployIngress()
 	d.deployPod()
-
+	d.deployIngress()
 }
 
 func (d *Deployment) deployPod() {
-
+	d.pod.Deploy()
 }
 func (d *Deployment) deployService() {
-
+	d.service.Deploy()
 }
 func (d *Deployment) deployIngress() {
-
+	d.ingress.Deploy()
 }
 
-type Pod struct {
-	Image string `json:"title" bson:"title"`
-	Port  int    `json:"createdAt" bson:"createdAt"`
-	Env   []map[string]string
-	app   string
-}
-type Ingress struct {
-	Name         string `json:"title" bson:"title"`
-	Service_Port int    `json:"createdAt" bson:"createdAt"`
+func (i *Deployment) setValues() {
 
-	App         string
-	Serice_Name string
-}
-
-func (i *Ingress) setValues(name string, port int, app, service string) {
-	i.Name = name
-	i.Service_Port = port
-	i.App = app
-	i.Serice_Name = service
-}
-
-type Service struct {
-	Name string `json:"title" bson:"title"`
-	// Author    string             `json:"author" bson:"author,omitempty"`
-	Port int `json:"createdAt" bson:"createdAt"`
-	Env  []map[string]string
-	App  string
 }

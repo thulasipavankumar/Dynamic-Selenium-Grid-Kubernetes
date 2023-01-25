@@ -6,8 +6,8 @@ import (
 )
 
 func Register_Create_Session_route(router *mux.Router) {
-	router.HandleFunc("/wd/hub/session", controllers.Create_selenium_controller).Methods("POST")
-	router.HandleFunc("/wd/hub/session", controllers.Create_selenium_controller).Methods("GET")
+	router.HandleFunc("/wd/hub/session", controllers.Create_Selenium_Session).Methods("POST")
+	router.HandleFunc("/wd/hub/session", controllers.Create_Selenium_Session).Methods("GET")
 	router.HandleFunc("/wd/hub/session/{sessionId}", controllers.Delete_Selenium_Session).Methods("DELETE")
 }
 

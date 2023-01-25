@@ -1,22 +1,20 @@
 {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "generateName": "",
-      "labels": {
-        "app": "app"
-      }
-    },
-    "spec": {
-      "ports": [
-        {
-          "port": 0,
-          "protocol": "TCP",
-          "name": ""
-        }
-      ],
-      "selector": {
-        "app": "app"
-      }
-    }
-  }
+	"apiVersion": "v1",
+	"kind": "Service",
+	"metadata": {
+		"generateName": "",
+		"labels": {
+			"app": "app"
+		}
+	},
+	"spec": {
+		"ports": [{
+			"port": 0,
+			"protocol": "TCP",
+			"name": ""
+		}],
+		"selector": {
+			"app": "app"
+		}
+	}
+}

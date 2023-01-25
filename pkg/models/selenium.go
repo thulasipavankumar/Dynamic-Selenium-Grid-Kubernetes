@@ -1,7 +1,6 @@
 package models
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
+	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
 )
 
 type selenim struct {
@@ -21,62 +21,41 @@ type selenim struct {
 		} `json:"capabilities"`
 	} `json:"value"`
 }
-type Response struct {
-	resData      []byte
-	err          error
-	responseCode int
-}
 
-func (r Response) GetResponseData() (byteSlice []byte) {
-	return r.resData
-}
-func (r Response) GetErr() error {
-	return r.err
-}
-func (r Response) GetResponseCode() int {
-	return r.responseCode
-}
+func CreateSession(m []byte, posturl string) (response utils.Response) {
 
-func CreateSession(m []byte, posturl string) (response Response) {
-	r, err := http.NewRequest("POST", posturl, bytes.NewBuffer(m))
-	if err != nil {
-		panic(err)
-	}
-	client := &http.Client{}
-	res, err := client.Do(r)
-	//defer res.Body.Close()
-	if err != nil {
-		return Response{nil, err, 422}
-	}
+	response = utils.Make_Post_Call(posturl, m)
 	newSession := selenim{}
-	if res.StatusCode == http.StatusOK {
+	if response.Err != nil {
+		return
+	}
+	if response.GetResponseCode() == http.StatusOK {
 		//utils.ParseBody(res, newSession)
-		data, err := ioutil.ReadAll(res.Body)
+
+		err := json.Unmarshal([]byte(response.GetResponseData()), &newSession)
 		if err != nil {
-			log.Panic(err)
+
+			return utils.Response{ResData: response.GetResponseData(), Err: err, ResponseCode: constants.Unable_TO_UNMARSHALL_JSON}
+
 		}
-		err = json.Unmarshal([]byte(data), &newSession)
-		log.Println("erro: ", err, string(data))
 		//	log.Printf(" data is %v", newSession.Value)
-		return Response{data, nil, res.StatusCode}
+		return utils.Response{ResData: response.GetResponseData(), Err: nil, ResponseCode: response.GetResponseCode()}
 
 	} else {
-		log.Printf("Unkown response %v, %v \n", res.StatusCode, res.Body)
-		return Response{nil, fmt.Errorf("An error occurred whilemake json call status code is not 200"), res.StatusCode}
-
+		return utils.Response{ResData: nil, Err: fmt.Errorf("An error occurred whilemake json call status code is not 200"), ResponseCode: response.GetResponseCode()}
 	}
 
 }
-func DeleteSession(sessionId, deleteUrl string) (response Response) {
+func DeleteSession(sessionId, deleteUrl string) (response utils.Response) {
 	r, err := http.NewRequest("DELETE", deleteUrl, nil)
 	if err != nil {
-		return Response{nil, fmt.Errorf("Unable to Create Delete Request object"), constants.Unable_TO_CREATE_REQUEST_OBJECT}
+		return utils.Response{ResData: nil, Err: fmt.Errorf("Unable to Create Delete Request object"), ResponseCode: constants.Unable_TO_CREATE_REQUEST_OBJECT}
 	}
 	client := &http.Client{}
 	res, err := client.Do(r)
 
 	if err != nil {
-		return Response{nil, err, 422}
+		return utils.Response{ResData: nil, Err: err, ResponseCode: 422}
 	}
 	defer res.Body.Close()
 
@@ -87,11 +66,11 @@ func DeleteSession(sessionId, deleteUrl string) (response Response) {
 			log.Panic(err)
 		}
 		//	log.Printf(" data is %v", newSession.Value)
-		return Response{data, nil, res.StatusCode}
+		return utils.Response{ResData: data, Err: nil, ResponseCode: res.StatusCode}
 
 	} else {
 		log.Printf("Unkown response %v, %v \n", res.StatusCode, res.Body)
-		return Response{nil, fmt.Errorf("An error occurred whilemake json call status code is not 200"), res.StatusCode}
+		return utils.Response{ResData: nil, Err: fmt.Errorf("An error occurred whilemake json call status code is not 200"), ResponseCode: res.StatusCode}
 
 	}
 }
