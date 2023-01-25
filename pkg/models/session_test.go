@@ -17,15 +17,17 @@ const VALID_SESSION string = `{
 }
 `
 
-func TestSessionValidate(t *testing.T) {
+func TestInvalidSession(t *testing.T) {
 	inValidSession := Session{}
 	if inValidSession.IsValidSession() {
 		t.Fail()
 	}
+
+}
+func TestValidSession(t *testing.T) {
 	var validSession Session
 	json.Unmarshal([]byte(VALID_SESSION), &validSession)
 	if validSession.IsValidSession() == false {
 		t.Fail()
 	}
-
 }
