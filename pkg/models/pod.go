@@ -2,9 +2,10 @@ package models
 
 //Pod constants
 const (
-	POD_API_VERSION = "v1"
-	POD_KIND        = "Pod"
-	POD_URL_POSTFIX = "pods/"
+	POD_API_VERSION   = "v1"
+	POD_KIND          = "Pod"
+	POD_URL_POSTFIX   = "pods/"
+	IMAGE_PULL_POLICY = "Always"
 )
 
 // Image constants
@@ -36,10 +37,7 @@ type Pod struct {
 }
 
 type Container struct {
-	Env []struct {
-		Name  string `json:"name"`
-		Value string `json:"value"`
-	} `json:"env"`
+	Envs            []Env  `json:"env"`
 	Image           string `json:"image"`
 	ImagePullPolicy string `json:"imagePullPolicy"`
 	Name            string `json:"name"`
@@ -59,18 +57,26 @@ type Container struct {
 	} `json:"ports"`
 }
 
+type Env struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 func (p *Pod) constructUrl(baseUrl, namespace string) (url string) {
 	return baseUrl + "api/v1/namespaces/" + namespace + "/" + POD_URL_POSTFIX
 }
-func (p *Pod) createHubContainer() {
-	p.Spec.Containers = append(p.Spec.Containers, Container{})
+func (p *Pod) appendHubContainer() {
+	hub := Container{}
+
+	p.Spec.Containers = append(p.Spec.Containers, hub)
 }
-func (p *Pod) createNodeContainer() {
-	p.Spec.Containers = append(p.Spec.Containers, Container{})
+func (p *Pod) appendNodeContainer() {
+	node := Container{}
+	p.Spec.Containers = append(p.Spec.Containers, node)
 }
 func (p *Pod) Deploy() {
-	p.createHubContainer()
-	p.createNodeContainer()
+	p.appendHubContainer()
+	p.appendNodeContainer()
 }
 func (p *Pod) GetName() (name string) {
 	return name

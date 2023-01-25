@@ -1,17 +1,17 @@
 package models
 
 type Response struct {
-	resData      []byte
-	err          error
-	responseCode int
+	ResData      []byte
+	Err          error
+	ResponseCode int
 }
 
 func (r Response) GetResponseData() (byteSlice []byte) {
-	return r.resData
+	return r.ResData
 }
 func (r Response) GetErr() error {
-	return r.err
+	return r.Err
 }
 func (r Response) GetResponseCode() int {
-	return r.responseCode
+	return r.ResponseCode
 }

@@ -16,7 +16,7 @@ import (
 func init() {
 
 }
-func Create_selenium_controller(w http.ResponseWriter, r *http.Request) {
+func Create_selenium_Containers(w http.ResponseWriter, r *http.Request) {
 	deployment := models.Deployment{}
 	deployment.Deploy()
 	Create_Selenium_Session(w, r)

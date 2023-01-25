@@ -21,26 +21,11 @@ type selenim struct {
 		} `json:"capabilities"`
 	} `json:"value"`
 }
-type Response struct {
-	resData      []byte
-	err          error
-	responseCode int
-}
-
-func (r Response) GetResponseData() (byteSlice []byte) {
-	return r.resData
-}
-func (r Response) GetErr() error {
-	return r.err
-}
-func (r Response) GetResponseCode() int {
-	return r.responseCode
-}
 
 func CreateSession(m []byte, posturl string) (response Response) {
 	r, err := http.NewRequest("POST", posturl, bytes.NewBuffer(m))
 	if err != nil {
-		panic(err)
+		log.Panicln(err)
 	}
 	client := &http.Client{}
 	res, err := client.Do(r)
