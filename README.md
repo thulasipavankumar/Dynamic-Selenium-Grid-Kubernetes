@@ -18,7 +18,7 @@ go test ./...
 
 ## Paths
 Ingress paths to set routes for all `session requests` to `HUB pod` and `delete` calls to `Dynamic Selenium Grid Go program`
-```yml
+```json
 "paths": [{
 		"path": "<base>/session/<sessionId>/(.+)",
 		"pathType": "Prefix",
