@@ -36,6 +36,7 @@ type Session struct {
 			BrowserVersion string `json:"browserVersion"`
 			PlatformName   string `json:"platformName"`
 		} `json:"firstMatch"`
+
 	} `json:"capabilities"`
 }
 

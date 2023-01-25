@@ -34,7 +34,9 @@ func CreateSession(m []byte, posturl string) (response utils.Response) {
 
 		err := json.Unmarshal([]byte(response.GetResponseData()), &newSession)
 		if err != nil {
+
 			return utils.Response{ResData: response.GetResponseData(), Err: err, ResponseCode: constants.Unable_TO_UNMARSHALL_JSON}
+
 		}
 		//	log.Printf(" data is %v", newSession.Value)
 		return utils.Response{ResData: response.GetResponseData(), Err: nil, ResponseCode: response.GetResponseCode()}
