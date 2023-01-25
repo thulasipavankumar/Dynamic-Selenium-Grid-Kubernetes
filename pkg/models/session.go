@@ -31,7 +31,11 @@ type Session struct {
 			PlatformName   string `json:"platformName"`
 		} `json:"alwaysMatch"`
 
-		Matches []firstMatch `json:"firstMatch"`
+		FirstMatch []struct {
+			BrowserName    string `json:"browserName"`
+			BrowserVersion string `json:"browserVersion"`
+			PlatformName   string `json:"platformName"`
+		} `json:"firstMatch"`
 	} `json:"capabilities"`
 }
 
