@@ -3,8 +3,6 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
@@ -47,30 +45,7 @@ func CreateSession(m []byte, posturl string) (response utils.Response) {
 
 }
 func DeleteSession(sessionId, deleteUrl string) (response utils.Response) {
-	r, err := http.NewRequest("DELETE", deleteUrl, nil)
-	if err != nil {
-		return utils.Response{ResData: nil, Err: fmt.Errorf("Unable to Create Delete Request object"), ResponseCode: constants.Unable_TO_CREATE_REQUEST_OBJECT}
-	}
-	client := &http.Client{}
-	res, err := client.Do(r)
+	response = utils.Make_Delete_Call(deleteUrl)
 
-	if err != nil {
-		return utils.Response{ResData: nil, Err: err, ResponseCode: 422}
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode == http.StatusOK {
-		//utils.ParseBody(res, newSession)
-		data, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			log.Panic(err)
-		}
-		//	log.Printf(" data is %v", newSession.Value)
-		return utils.Response{ResData: data, Err: nil, ResponseCode: res.StatusCode}
-
-	} else {
-		log.Printf("Unkown response %v, %v \n", res.StatusCode, res.Body)
-		return utils.Response{ResData: nil, Err: fmt.Errorf("An error occurred whilemake json call status code is not 200"), ResponseCode: res.StatusCode}
-
-	}
+	return response
 }

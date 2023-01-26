@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -14,7 +13,7 @@ func main() {
 
 	routes.Register_Create_Session_route(app)
 	http.Handle("/", app)
-	fmt.Println("Server Started")
+	log.Println("Server Started")
 	log.Fatal(http.ListenAndServe("localhost:8081", app))
 
 }
