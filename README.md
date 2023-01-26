@@ -1,4 +1,4 @@
-## Dynamic selenium grid
+## Dynamic selenium grid  master branch [![CircleCI](https://circleci.com/gh/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/tree/master.svg?style=svg)](https://circleci.com/gh/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/tree/master)
 - Now able to create selenium session
 - Return the created session to request
 
