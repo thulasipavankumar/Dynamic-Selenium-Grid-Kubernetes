@@ -14,8 +14,8 @@ func TestCreatesSessionNegative(t *testing.T) {
 }
 
 func TestDeleteSessionNegative(t *testing.T) {
-	actual := DeleteSession("", "http://127.0.0.011")
-	if actual.Err == nil || actual.ResponseCode != 422 {
+	actual := DeleteSession("", "http://127.0.0.01")
+	if actual.Err == nil || actual.ResponseCode != constants.Unable_TO_CREATE_CLIENT_OBJECT {
 		t.Fail()
 	}
 }
