@@ -48,9 +48,18 @@ type firstMatch struct {
 	PlatformName   string `json:"platformName"`
 }
 
+/*
+Negative scenario when the request cannot be fullfiled
+1. First Match array is empty array
+2. Both "Always Match" and "First Match" are empty
+3. Overlapping Keys in "Always Match" and "First Match"
+*/
 func (s Session) IsValidSession() bool {
+	if len(s.Capabilities.FirstMatch) == 0 {
+		return false
+	}
 	if s.Capabilities.AlwaysMatch.BrowserName == "" && s.Capabilities.AlwaysMatch.PlatformName == "" &&
-		s.Capabilities.AlwaysMatch.BrowserVersion == "" && len(s.Capabilities.FirstMatch) == 0 {
+		s.Capabilities.AlwaysMatch.BrowserVersion == "" {
 		return false
 	}
 	return true
