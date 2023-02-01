@@ -9,7 +9,7 @@ import (
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
 )
 
-type selenim struct {
+type Selenim struct {
 	Value struct {
 		SessionId    string `json:"sessionId"`
 		Capabilities struct {
@@ -23,7 +23,7 @@ type selenim struct {
 func CreateSession(m []byte, posturl string) (response utils.Response) {
 
 	response = utils.Make_Post_Call(posturl, m)
-	newSession := selenim{}
+	newSession := Selenim{}
 	if response.Err != nil {
 		return
 	}
@@ -33,7 +33,7 @@ func CreateSession(m []byte, posturl string) (response utils.Response) {
 		err := json.Unmarshal([]byte(response.GetResponseData()), &newSession)
 		if err != nil {
 
-			return utils.Response{ResData: response.GetResponseData(), Err: err, ResponseCode: constants.Unable_TO_UNMARSHALL_JSON}
+			return utils.Response{ResData: response.GetResponseData(), Err: err, ResponseCode: constants.Unable_TO_UNMARSHALL_JSON, M: newSession}
 
 		}
 		//	log.Printf(" data is %v", newSession.Value)

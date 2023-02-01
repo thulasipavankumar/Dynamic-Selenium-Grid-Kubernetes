@@ -18,3 +18,4 @@
 # unit test case results
 *.xml
 *.env
+pkg/models/package.json

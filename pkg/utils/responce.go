@@ -4,6 +4,7 @@ type Response struct {
 	ResData      []byte
 	Err          error
 	ResponseCode int
+	M            interface{}
 }
 
 func (r Response) GetResponseData() (byteSlice []byte) {

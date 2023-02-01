@@ -1,5 +1,12 @@
 package models
 
+import (
+	"encoding/json"
+	"log"
+
+	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
+)
+
 // ingress constants
 const (
 	INGRESS_API_VERSION   = "networking.k8s.io/v1"
@@ -12,9 +19,10 @@ const (
 )
 
 type Ingress struct {
-	APIVersion string `json:"apiVersion"`
-	Kind       string `json:"kind"`
-	Metadata   struct {
+	namespaceDetails NamespaceDetails
+	APIVersion       string `json:"apiVersion"`
+	Kind             string `json:"kind"`
+	Metadata         struct {
 		Name        string `json:"name"`
 		Annotations struct {
 			NginxIngressKubernetesIoRewriteTarget string `json:"nginx.ingress.kubernetes.io/rewrite-target"`
@@ -73,7 +81,8 @@ func (i *Ingress) createDeletePath() {
 	rule := &i.Spec.Rules[0]
 	rule.HTTP.Paths = append(rule.HTTP.Paths, path)
 }
-func (i *Ingress) Init(c Common) {
+func (i *Ingress) Init(c Common, n NamespaceDetails) {
+	i.namespaceDetails = n
 	i.SetValues()
 
 	metadata := &i.Metadata
@@ -88,12 +97,17 @@ func (i *Ingress) Init(c Common) {
 	i.createSeleniumPath()
 	i.createDeletePath()
 }
-func (i *Ingress) constructUrl(baseUrl, namespace string) (url string) {
+func (i *Ingress) constructUrl() (url string) {
 
-	return baseUrl + "apis/networking.k8s.io/v1/namespaces/" + namespace + "/"
+	return i.namespaceDetails.Url + "apis/networking.k8s.io/v1/namespaces/" + i.namespaceDetails.Namespace + "/"
 }
 func (i *Ingress) Deploy() {
-
+	bytes, err := json.Marshal(i)
+	if err != nil {
+		log.Println("Error in pod marshall", err)
+	}
+	response := utils.Make_Post_Call_With_Bearer(i.constructUrl(), bytes, i.namespaceDetails.Token)
+	log.Println(response)
 }
 func (i *Ingress) GetName() (name string) {
 	return name
