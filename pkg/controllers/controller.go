@@ -17,7 +17,7 @@ func init() {
 
 }
 func Create_selenium_Containers(w http.ResponseWriter, r *http.Request) {
-	deployment := models.Deployment{}
+	deployment := createDeployment()
 	deployment.Deploy()
 	Create_Selenium_Session(w, r)
 }
@@ -66,4 +66,7 @@ func send_Error_To_Client(w http.ResponseWriter, errorMessage string, errorCode 
 		ErrorMessage: errorMessage,
 		ErrorCode:    errorCode,
 	}, w)
+}
+func createDeployment() models.Deployment {
+	return models.Deployment{}
 }
