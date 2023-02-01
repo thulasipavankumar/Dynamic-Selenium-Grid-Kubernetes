@@ -17,3 +17,4 @@
 .vscode
 # unit test case results
 *.xml
+*.env
