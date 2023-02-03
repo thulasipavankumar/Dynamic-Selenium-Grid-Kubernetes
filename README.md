@@ -19,6 +19,10 @@ go test ./...
 ## Paths
 Ingress paths to set routes for all `session requests` to `HUB pod` and `delete` calls to `Dynamic Selenium Grid Go program`
 ```json
+"annotations": {
+        "nginx.ingress.kubernetes.io/rewrite-target": "/session/<sessionId>/$1",
+        "nginx.ingress.kubernetes.io/proxy-body-size": "1000M"
+      }
 "paths": [{
 		"path": "<base>/session/<sessionId>/(.+)",
 		"pathType": "Prefix",
