@@ -9,7 +9,7 @@ import (
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
 )
 
-type Selenim struct {
+type Selenium struct {
 	Value struct {
 		SessionId    string `json:"sessionId"`
 		Capabilities struct {
@@ -23,7 +23,7 @@ type Selenim struct {
 func CreateSession(m []byte, posturl string) (response utils.Response) {
 
 	response = utils.Make_Post_Call(posturl, m)
-	newSession := Selenim{}
+	newSession := Selenium{}
 	if response.Err != nil {
 		return
 	}

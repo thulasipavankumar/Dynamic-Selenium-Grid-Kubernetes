@@ -67,12 +67,17 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 
 	session_result := models.CreateSession(responseData, utils.ConstructCreateSessionURL(hub_url)) // <--- replace url
 	// <--- get sessionId
+
 	if session_result.GetErr() != nil {
 		send_Error_To_Client(w, session_result.GetErr().Error(), session_result.GetResponseCode())
-	} else {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(session_result.GetResponseData())
 	}
+	newSession := models.Selenium{}
+	_ = json.Unmarshal([]byte(session_result.GetResponseData()), &newSession)
+	i := deployment.GetIngress()
+	i.SaveServiceAndSession(deployment.GetDetails().ServiceName, newSession.Value.SessionId)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(session_result.GetResponseData())
+
 	_ = deployment
 }
 func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +85,10 @@ func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	sessionId := vars["sessionId"]
 
 	log.Printf("Got sessionId: %v \n", string(sessionId))
+	/*
+		Below for deleting session it require <service-name>:<port>/sessionId
+		In-order to achieve it , there should be a session to service mapping done
+	*/
 	response := models.DeleteSession(sessionId, utils.ConstructDeleteSessionURL(sessionId, os.Getenv("hub_url")))
 
 	if response.GetErr() != nil {

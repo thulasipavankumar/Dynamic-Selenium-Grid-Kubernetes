@@ -61,21 +61,21 @@ type PortService struct {
 	Number int `json:"number"`
 }
 
-func (i *Ingress) createSeleniumPath() {
+func (i *Ingress) createSeleniumPath(serviceName, sessionId string) {
 	port := PortService{4444}
-	service := ServiceStruct{"<service-name-selenium>", port}
+	service := ServiceStruct{serviceName, port}
 	backend := BackendStruct{service}
-	path := PathStruct{"session/<sessionID>/(.+)", "Prefix", backend}
+	path := PathStruct{`session/${sessionId}/(.+)`, "Prefix", backend}
 	http := HTTPStruct{}
 	http.Paths = append(http.Paths, path)
 	rule := &i.Spec.Rules[0]
 	rule.HTTP.Paths = append(rule.HTTP.Paths, path)
 }
-func (i *Ingress) createDeletePath() {
-	port := PortService{8080}
-	service := ServiceStruct{"<service-name-dynamic-grid>", port}
+func (i *Ingress) createDeletePath(serviceName, sessionId string) {
+	port := PortService{8080} // TODO read the port from config or pass onby parameters
+	service := ServiceStruct{serviceName, port}
 	backend := BackendStruct{service}
-	path := PathStruct{"session/<sessionID>", "Prefix", backend}
+	path := PathStruct{`session/${sessionId}`, "Prefix", backend}
 	http := HTTPStruct{}
 	http.Paths = append(http.Paths, path)
 	rule := &i.Spec.Rules[0]
@@ -94,8 +94,10 @@ func (i *Ingress) Init(c Common, n NamespaceDetails) {
 	rule := Rule{}
 	spec.Rules = append(spec.Rules, rule)
 
-	i.createSeleniumPath()
-	i.createDeletePath()
+}
+func (i *Ingress) SaveServiceAndSession(serviceName, sessionId string) {
+	i.createSeleniumPath(serviceName, sessionId)
+	i.createDeletePath(serviceName, sessionId)
 }
 func (i *Ingress) constructUrl() (url string) {
 
