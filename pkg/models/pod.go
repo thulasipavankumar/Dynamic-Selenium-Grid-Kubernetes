@@ -38,7 +38,7 @@ var (
 func init() {
 	hubImages = make(map[string]string)
 	nodeImages = make(map[string]map[string]string)
-	err := godotenv.Load("../pkg/models/keys.env")
+	err := godotenv.Load("keys.env")
 	_ = err
 	hub_image = os.Getenv("hub_image")
 	node_image = os.Getenv("node_image")

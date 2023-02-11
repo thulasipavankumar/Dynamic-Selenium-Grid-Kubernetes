@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 /*
 https://w3c.github.io/webdriver/#processing-capabilities
 
@@ -42,6 +44,14 @@ type Session struct {
 	} `json:"capabilities"`
 }
 
+var defaultBrowserName, defaultBrowserVersion, defaultPlatformName string
+
+func init() {
+	defaultBrowserName = "chrome"
+	defaultBrowserVersion = "104.0"
+	defaultPlatformName = "linux"
+}
+
 type Match struct {
 	BrowserName    string `json:"browserName"`
 	BrowserVersion string `json:"browserVersion"`
@@ -63,6 +73,14 @@ func (s Session) IsValidSession() bool {
 	return true
 
 }
-func (s Session) GetValidatedSession() Match {
-	return Match{"chrome", "104.0", "linux"}
+func (s Session) GetValidatedSession() (Match, error) {
+	if s.IsValidSession() {
+		return Match{BrowserName: defaultBrowserName, BrowserVersion: defaultBrowserVersion, PlatformName: defaultPlatformName}, nil
+	} else {
+		return Match{}, fmt.Errorf("Not a valid session object")
+	}
+
+}
+func (s Session) experiment() {
+
 }

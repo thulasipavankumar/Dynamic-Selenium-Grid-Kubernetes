@@ -44,7 +44,8 @@ func validate(w http.ResponseWriter, r *http.Request) (data []byte, matched mode
 		send_Error_To_Client(w, "Session Object validation failed", constants.UNABLE_TO_VALIDATE_REQUEST)
 		return nil, emptyMatch, true
 	}
-	match := session.GetValidatedSession()
+	match, err := session.GetValidatedSession()
+	_ = err
 	return responseData, match, false
 }
 func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
