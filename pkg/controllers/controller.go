@@ -18,11 +18,17 @@ var hub_url string
 func init() {
 	hub_url = os.Getenv("hub_url")
 }
-func Create_selenium_Containers(match models.Match) models.Deployment {
+func Create_selenium_Containers(match models.Match) (models.Deployment, error) {
 	deployment := createDeployment()
-	deployment.LoadRequestedCapabilites(match)
-	deployment.Deploy()
-	return deployment
+	err := deployment.LoadRequestedCapabilites(match)
+	if err != nil {
+		return models.Deployment{}, err
+	}
+	err = deployment.Deploy()
+	if err != nil {
+		return models.Deployment{}, err
+	}
+	return deployment, nil
 	//service := deployment.GetService()
 	//return service.GetServiceUrl()
 }
@@ -49,11 +55,15 @@ func validate(w http.ResponseWriter, r *http.Request) (data []byte, matched mode
 	return responseData, match, false
 }
 func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
-	responseData, match, validateErr := validate(w, r)
-	if validateErr {
+	responseData, match, err := validate(w, r)
+	if err {
 		return
 	}
-	deployment := Create_selenium_Containers(match)
+	deployment, createErr := Create_selenium_Containers(match)
+	if createErr != nil {
+		send_Error_To_Client(w, "UNABLE_TO_CREATE_DEPLOYMENT", constants.UNABLE_TO_CREATE_DEPLOYMENT)
+		return
+	}
 
 	session_result := models.CreateSession(responseData, utils.ConstructCreateSessionURL(hub_url)) // <--- replace url
 	// <--- get sessionId
@@ -78,13 +88,4 @@ func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response.GetResponseData())
 	}
-}
-func send_Error_To_Client(w http.ResponseWriter, errorMessage string, errorCode int) {
-	utils.Send_Error_To_Client(utils.ErrorTemplate{
-		ErrorMessage: errorMessage,
-		ErrorCode:    errorCode,
-	}, w)
-}
-func createDeployment() models.Deployment {
-	return models.Deployment{}
 }

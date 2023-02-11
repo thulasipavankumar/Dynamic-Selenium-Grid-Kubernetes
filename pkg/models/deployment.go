@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -18,7 +19,7 @@ type NamespaceDetails struct {
 var namespace NamespaceDetails
 
 func init() {
-	err := godotenv.Load("../pkg/models/keys.env")
+	err := godotenv.Load("../keys.env")
 	_ = err
 	namespace = NamespaceDetails{Namespace: os.Getenv("Namespace"), Url: os.Getenv("Url"), Token: os.Getenv("Token")}
 }
@@ -52,8 +53,12 @@ func (d *Deployment) GetDetails() Details {
 		IngressName: d.ingress.GetName(),
 	}
 }
-func (d *Deployment) LoadRequestedCapabilites(matched Match) {
-
+func (d *Deployment) LoadRequestedCapabilites(matched Match) error {
+	err := d.pod.PopulateImagesFronRequest(matched)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 func (d *Deployment) GetService() Service {
 	return d.service
@@ -64,29 +69,35 @@ func (d *Deployment) GetPod() Pod {
 func (d *Deployment) GetIngress() Ingress {
 	return d.ingress
 }
-func (d *Deployment) Deploy() {
+func (d *Deployment) Deploy() error {
 	c := Common{App: "app-" + strings.ToLower(shortuuid.New()), EnvArr: nil, Port: 4444}
 	d.Init(c)
-	d.deployService()
-	d.deployPod()
-	//	d.deployIngress()
+	serviceErr := d.deployService()
+	podErr := d.deployPod()
+	//ingerssErr := d.deployIngress()
+	_, _ = serviceErr, podErr
+	if serviceErr != nil || podErr != nil {
+		return fmt.Errorf("Unable to create deployment")
+	}
+	return nil
 }
+
 func (d *Deployment) Init(c Common) {
 	d.pod.Init(c, namespace)
 	d.service.Init(c, namespace)
 	d.ingress.Init(c, namespace)
 
-	fmt.Printf("%#v \n%#v	\n%#v", d.pod, d.service, d.ingress)
+	log.Printf("pod: %#v\nservice: %#v\ningress: %#v\n", d.pod, d.service, d.ingress)
 
 }
-func (d *Deployment) deployPod() {
-	d.pod.Deploy()
+func (d *Deployment) deployPod() error {
+	return d.pod.Deploy()
 }
-func (d *Deployment) deployService() {
-	d.service.Deploy()
+func (d *Deployment) deployService() error {
+	return d.service.Deploy()
 }
-func (d *Deployment) deployIngress() {
-	d.ingress.Deploy()
+func (d *Deployment) deployIngress() error {
+	return d.ingress.Deploy()
 }
 
 func (i *Deployment) setValues() {

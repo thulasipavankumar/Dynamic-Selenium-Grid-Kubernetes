@@ -56,13 +56,18 @@ func (s *Service) Init(c Common, n NamespaceDetails) {
 func (s *Service) constructUrl() (url string) {
 	return s.namespaceDetails.Url + "api/v1/namespaces/" + s.namespaceDetails.Namespace + "/" + SERVICE_URL_POSTFIX
 }
-func (s *Service) Deploy() {
+func (s *Service) Deploy() error {
 	bytes, err := json.Marshal(s)
 	if err != nil {
-		log.Println("Error in pod marshall", err)
+		log.Println("Error in service marshall", err)
+		return err
 	}
 	response := utils.Make_Post_Call_With_Bearer(s.constructUrl(), bytes, s.namespaceDetails.Token)
-	log.Println(response)
+	log.Println("Service response: ", response)
+	if response.Err != nil {
+		return response.Err
+	}
+	return nil
 }
 func (s *Service) GetName() (name string) {
 	return s.Metadata.Name

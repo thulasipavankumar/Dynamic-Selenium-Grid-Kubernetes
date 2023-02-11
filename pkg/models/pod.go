@@ -3,9 +3,7 @@ package models
 import (
 	"encoding/json"
 	"log"
-	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
 )
@@ -28,20 +26,25 @@ const (
 	HUB_PORT                    = 4444
 )
 
-var (
-	hubImages  map[string]string
-	nodeImages map[string]map[string]string
-	hub_image  string
-	node_image string
-)
+// var (
+// 	hubImages  map[string]string
+// 	nodeImages map[string]map[string]string
+// 	hub_image  string
+// 	node_image string
+// )
 
 func init() {
-	hubImages = make(map[string]string)
-	nodeImages = make(map[string]map[string]string)
-	err := godotenv.Load("keys.env")
-	_ = err
-	hub_image = os.Getenv("hub_image")
-	node_image = os.Getenv("node_image")
+	// hubImages = make(map[string]string)
+	// nodeImages = make(map[string]map[string]string)
+	// err := godotenv.Load("../keys.env")
+	// _ = err
+	// cwd, err := os.Getwd()
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// log.Println(cwd)
+	// hub_image = os.Getenv("hub_image")
+	// node_image = os.Getenv("node_image")
 }
 
 type Pod struct {
@@ -61,6 +64,8 @@ type Pod struct {
 		Containers    []Container `json:"containers"`
 		RestartPolicy string      `json:"restartPolicy"`
 	} `json:"spec"`
+	nodeImage string
+	hubImage  string
 }
 type Resource struct {
 	CPU    string `json:"cpu"`
@@ -92,6 +97,26 @@ func (p *Pod) Init(c Common, n NamespaceDetails) {
 	p.SetValues()
 
 }
+func (p *Pod) PopulateImagesFronRequest(m Match) error {
+	var err error
+	p.hubImage, err = GetHubImage("4.0")
+	if err != nil {
+		return err
+	}
+
+	if m.BrowserName == "chrome" {
+		p.nodeImage, _ = GetChromeNodeImage(m.BrowserVersion)
+		if err != nil {
+			return err
+		}
+	} else {
+		p.nodeImage, _ = GetFirefoxNodeImage(m.BrowserVersion)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 type Env struct {
 	Name  string `json:"name"`
@@ -108,7 +133,7 @@ func (p *Pod) appendHubContainer() {
 	hub.Resources.Limits = limits
 	hub.Resources.Requests = requests
 	hub.Name = "selenium-hub" // <---- "<hub-name>"
-	hub.Image = hub_image     // <---- "<hub-image>"
+	hub.Image = p.hubImage    // <---- "<hub-image>"
 	hub.Ports = append(hub.Ports, PortStruct{4444, constants.PROTOCOL})
 	hub.ImagePullPolicy = IMAGE_PULL_POLICY
 	p.Spec.Containers = append(p.Spec.Containers, hub)
@@ -142,18 +167,24 @@ func (p *Pod) appendNodeContainer() {
 	node.Resources.Limits = limits
 	node.Resources.Requests = requests
 	node.Name = "selenium-node" // <----- "<node-name>"
-	node.Image = node_image     // <----- "<node-image>"
+	// <----- "<node-image>"
+	node.Image = p.nodeImage
 	node.Ports = append(node.Ports, PortStruct{5555, constants.PROTOCOL})
 	node.ImagePullPolicy = IMAGE_PULL_POLICY
 	p.Spec.Containers = append(p.Spec.Containers, node)
 }
-func (p *Pod) Deploy() {
+func (p *Pod) Deploy() error {
 	bytes, err := json.Marshal(p)
 	if err != nil {
 		log.Println("Error in pod marshall", err)
+		return err
 	}
 	response := utils.Make_Post_Call_With_Bearer(p.constructUrl(), bytes, p.namespaceDetails.Token)
-	log.Println(response)
+	log.Println("Pod response: ", response)
+	if response.Err != nil {
+		return response.Err
+	}
+	return nil
 }
 func (p *Pod) GetName() (name string) {
 	return name

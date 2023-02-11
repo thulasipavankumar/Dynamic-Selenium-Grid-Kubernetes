@@ -101,13 +101,18 @@ func (i *Ingress) constructUrl() (url string) {
 
 	return i.namespaceDetails.Url + "apis/networking.k8s.io/v1/namespaces/" + i.namespaceDetails.Namespace + "/"
 }
-func (i *Ingress) Deploy() {
+func (i *Ingress) Deploy() error {
 	bytes, err := json.Marshal(i)
 	if err != nil {
-		log.Println("Error in pod marshall", err)
+		log.Println("Error in ingress marshall", err)
+		return err
 	}
 	response := utils.Make_Post_Call_With_Bearer(i.constructUrl(), bytes, i.namespaceDetails.Token)
-	log.Println(response)
+	log.Println("Ingress response: ", response)
+	if response.Err != nil {
+		return response.Err
+	}
+	return nil
 }
 func (i *Ingress) GetName() (name string) {
 	return name
