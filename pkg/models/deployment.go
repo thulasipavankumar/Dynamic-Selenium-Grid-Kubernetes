@@ -5,9 +5,11 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/lithammer/shortuuid/v4"
+	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
 )
 
 type NamespaceDetails struct {
@@ -53,6 +55,14 @@ func (d *Deployment) GetDetails() Details {
 		IngressName: d.ingress.GetName(),
 	}
 }
+func (d *Deployment) DeleteDeployment(podName, serviceName, ingressName string) {
+	d.pod.SaveNamespaceDetails(namespace)
+	defer d.pod.Delete(podName)
+	d.ingress.SaveNamespaceDetails(namespace)
+	defer d.ingress.Delete(ingressName)
+	d.service.SaveNamespaceDetails(namespace)
+	defer d.service.Delete(serviceName)
+}
 func (d *Deployment) LoadRequestedCapabilites(matched Match) error {
 	err := d.pod.PopulateImagesFronRequest(matched)
 	if err != nil {
@@ -60,14 +70,14 @@ func (d *Deployment) LoadRequestedCapabilites(matched Match) error {
 	}
 	return nil
 }
-func (d *Deployment) GetService() Service {
-	return d.service
+func (d *Deployment) GetService() *Service {
+	return &d.service
 }
-func (d *Deployment) GetPod() Pod {
-	return d.pod
+func (d *Deployment) GetPod() *Pod {
+	return &d.pod
 }
-func (d *Deployment) GetIngress() Ingress {
-	return d.ingress
+func (d *Deployment) GetIngress() *Ingress {
+	return &d.ingress
 }
 func (d *Deployment) Deploy() error {
 	c := Common{App: "app-" + strings.ToLower(shortuuid.New()), EnvArr: nil, Port: 4444}
@@ -78,6 +88,10 @@ func (d *Deployment) Deploy() error {
 	_, _ = serviceErr, podErr
 	if serviceErr != nil || podErr != nil {
 		return fmt.Errorf("Unable to create deployment")
+	}
+	podUpError := d.CheckIfDeploymentIsUp()
+	if podUpError != nil {
+		return fmt.Errorf("Pod is not up in 5min")
 	}
 	return nil
 }
@@ -96,10 +110,28 @@ func (d *Deployment) deployPod() error {
 func (d *Deployment) deployService() error {
 	return d.service.Deploy()
 }
-func (d *Deployment) deployIngress() error {
+func (d *Deployment) DeployIngress() error {
 	return d.ingress.Deploy()
 }
+func (d *Deployment) CheckIfDeploymentIsUp() error {
 
+	count := 1
+	for {
+		response := utils.Make_Get_Call(d.service.GetServiceUrl())
+
+		if response.ResponseCode == 302 || response.ResponseCode == 200 || count >= 6*5 {
+			response.Println("Success able to get responce ")
+			return nil
+
+		}
+		response.Printf("pod was not up:")
+		time.Sleep(10 * time.Second)
+		count++
+	}
+	fmt.Println("Unable to get responce from pod!!", d.service.GetServiceUrl())
+	return fmt.Errorf("Pod did not respond in 5min")
+
+}
 func (i *Deployment) setValues() {
 
 }

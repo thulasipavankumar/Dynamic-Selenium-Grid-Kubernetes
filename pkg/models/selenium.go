@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
@@ -45,7 +46,8 @@ func CreateSession(m []byte, posturl string) (response utils.Response) {
 
 }
 func DeleteSession(sessionId, deleteUrl string) (response utils.Response) {
+	log.Printf("Deleting the session:%s \n", deleteUrl)
 	response = utils.Make_Delete_Call(deleteUrl)
-
+	response.Println("Deleted selenium session via api:")
 	return response
 }

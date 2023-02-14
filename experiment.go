@@ -7,6 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+
+	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models"
 )
 
 const static_data = `{
@@ -39,7 +42,12 @@ type PokemonSpecies struct {
 }
 
 func main() {
-
+	namespace := models.NamespaceDetails{Namespace: os.Getenv("Namespace"), Url: os.Getenv("Url"), Token: os.Getenv("Token")}
+	c := models.Common{App: "app-" + strings.ToLower("random"), EnvArr: nil, Port: 4444}
+	ingress := models.Ingress{}
+	ingress.Init(c, namespace)
+	ingress.SaveServiceAndSession("http://service:8080/", "n8uh7ags6a90ojx77xgxgyx", "random", 8080)
+	ingress.Deploy()
 }
 func makeFunCall() {
 	response, err := http.Get("http://pokeapi.co/api/v2/pokedex/kanto/")

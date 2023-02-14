@@ -43,8 +43,11 @@ type Port struct {
 func (s *Service) GetServiceUrl() string {
 	return "http://" + s.GetName() + ":" + strconv.Itoa(HUB_PORT)
 }
-func (s *Service) Init(c Common, n NamespaceDetails) {
+func (s *Service) SaveNamespaceDetails(n NamespaceDetails) {
 	s.namespaceDetails = n
+}
+func (s *Service) Init(c Common, n NamespaceDetails) {
+	s.SaveNamespaceDetails(n)
 	s.SetValues()
 	metadata := &s.Metadata
 	spec := &s.Spec
@@ -53,8 +56,20 @@ func (s *Service) Init(c Common, n NamespaceDetails) {
 	spec.Ports = append(spec.Ports, Port{Port: c.Port, Protocol: constants.PROTOCOL, Name: c.App})
 	spec.Selector.App = c.App
 }
+func (s *Service) Delete(ServiceName string) error {
+	log.Println("Deleting Service", ServiceName)
+	response := utils.Make_Delete_Call_With_Bearer(s.constructDeleteUrl(ServiceName), s.namespaceDetails.Token)
+	response.Printf("service delete response:")
+	if response.Err != nil {
+		return response.Err
+	}
+	return nil
+}
 func (s *Service) constructUrl() (url string) {
 	return s.namespaceDetails.Url + "api/v1/namespaces/" + s.namespaceDetails.Namespace + "/" + SERVICE_URL_POSTFIX
+}
+func (s *Service) constructDeleteUrl(serviceName string) (url string) {
+	return s.namespaceDetails.Url + "api/v1/namespaces/" + s.namespaceDetails.Namespace + "/" + SERVICE_URL_POSTFIX + serviceName
 }
 func (s *Service) Deploy() error {
 	bytes, err := json.Marshal(s)
@@ -63,7 +78,7 @@ func (s *Service) Deploy() error {
 		return err
 	}
 	response := utils.Make_Post_Call_With_Bearer(s.constructUrl(), bytes, s.namespaceDetails.Token)
-	log.Println("Service response: ", response)
+	response.Printf("Service response:")
 	if response.Err != nil {
 		return response.Err
 	}

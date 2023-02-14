@@ -26,13 +26,6 @@ const (
 	HUB_PORT                    = 4444
 )
 
-// var (
-// 	hubImages  map[string]string
-// 	nodeImages map[string]map[string]string
-// 	hub_image  string
-// 	node_image string
-// )
-
 func init() {
 	// hubImages = make(map[string]string)
 	// nodeImages = make(map[string]map[string]string)
@@ -89,11 +82,14 @@ type PortStruct struct {
 	Protocol      string `json:"protocol"`
 }
 
+func (p *Pod) SaveNamespaceDetails(n NamespaceDetails) {
+	p.namespaceDetails = n
+}
 func (p *Pod) Init(c Common, n NamespaceDetails) {
 	p.Metadata.Name = "pod-" + c.App
 	p.Metadata.Labels.App = c.App
 	p.Spec.Selector.App = c.App
-	p.namespaceDetails = n
+	p.SaveNamespaceDetails(n)
 	p.SetValues()
 
 }
@@ -123,8 +119,20 @@ type Env struct {
 	Value string `json:"value"`
 }
 
+func (p *Pod) Delete(podName string) error {
+	log.Println("Deleting Pod", podName)
+	response := utils.Make_Delete_Call_With_Bearer(p.constructDeleteUrl(podName), p.namespaceDetails.Token)
+	response.Printf("Pod delete response:")
+	if response.Err != nil {
+		return response.Err
+	}
+	return nil
+}
 func (p *Pod) constructUrl() (url string) {
 	return p.namespaceDetails.Url + "api/v1/namespaces/" + p.namespaceDetails.Namespace + "/" + POD_URL_POSTFIX
+}
+func (p *Pod) constructDeleteUrl(podName string) (url string) {
+	return p.namespaceDetails.Url + "api/v1/namespaces/" + p.namespaceDetails.Namespace + "/" + POD_URL_POSTFIX + podName
 }
 func (p *Pod) appendHubContainer() {
 	hub := Container{}
@@ -180,14 +188,14 @@ func (p *Pod) Deploy() error {
 		return err
 	}
 	response := utils.Make_Post_Call_With_Bearer(p.constructUrl(), bytes, p.namespaceDetails.Token)
-	log.Println("Pod response: ", response)
+	response.Printf("Pod response:")
 	if response.Err != nil {
 		return response.Err
 	}
 	return nil
 }
-func (p *Pod) GetName() (name string) {
-	return name
+func (p *Pod) GetName() string {
+	return p.Metadata.Name
 }
 func (p *Pod) SetValues() {
 	p.Kind = POD_KIND

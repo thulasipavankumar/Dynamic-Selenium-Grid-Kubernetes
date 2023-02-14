@@ -19,3 +19,11 @@
 *.xml
 *.env
 pkg/models/*.json
+
+# Docker files
+Dockerfile
+.dockerignore
+
+#build file
+build.bat
+run.bat

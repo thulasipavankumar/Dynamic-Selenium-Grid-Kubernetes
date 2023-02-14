@@ -1,5 +1,10 @@
 package utils
 
+import (
+	"fmt"
+	"log"
+)
+
 type Response struct {
 	ResData      []byte
 	Err          error
@@ -15,4 +20,10 @@ func (r Response) GetErr() error {
 }
 func (r Response) GetResponseCode() int {
 	return r.ResponseCode
+}
+func (r Response) Printf(m interface{}) {
+	log.Printf("%s data: %s error:%v responcecode:%d \n", m, fmt.Sprintf("%s", r.ResData), r.Err, r.ResponseCode)
+}
+func (r Response) Println(m interface{}) {
+	log.Printf("%s data: %s error:%v responcecode:%d \n", m, fmt.Sprintf("%s", r.ResData), r.Err, r.ResponseCode)
 }
