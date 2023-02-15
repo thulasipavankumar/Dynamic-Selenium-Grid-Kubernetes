@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -15,10 +14,8 @@ import (
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models"
 )
 
-var hub_url string
-
 func init() {
-	hub_url = os.Getenv("hub_url")
+
 }
 func Create_selenium_Containers(match models.Match) (models.Deployment, error) {
 	deployment := createDeployment()
@@ -69,7 +66,7 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	service := deployment.GetService()
 	hubEndpoint := fmt.Sprintf("%s/session", service.GetServiceUrl()) // TODO replace the url later
 
-	session_result := models.CreateSession(responseData, hubEndpoint) // <--- TODO replace url utils.ConstructCreateSessionURL("hub_url")
+	session_result := models.CreateSession(responseData, hubEndpoint)
 	// <--- get sessionId
 
 	if session_result.GetErr() != nil {
@@ -81,7 +78,7 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 
 	_ = json.Unmarshal([]byte(session_result.GetResponseData()), &newSession)
 	i := deployment.GetIngress()
-	i.SaveServiceAndSession(deployment.GetDetails().ServiceName, newSession.Value.SessionId, config.Service, config.Port)
+	i.SaveServiceAndSession(deployment.GetDetails().ServiceName, newSession.Value.SessionId, config.GetService(), config.GetPort())
 	ingressErr := deployment.DeployIngress()
 	if ingressErr != nil {
 		log.Println(`Error in creating ingress`, ingressErr)
@@ -90,11 +87,11 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(session_result.GetResponseData())
 	defer models.AddValuesToDB(models.DatabaseModel{
-		SessionID: newSession.Value.SessionId,
-		Service:   deployment.GetDetails().ServiceName,
-		Pod:       deployment.GetDetails().PodName,
-		Ingress:   deployment.GetDetails().IngressName,
-		Port:      "4444",
+		SessionID:  newSession.Value.SessionId,
+		Service:    deployment.GetDetails().ServiceName,
+		Pod:        deployment.GetDetails().PodName,
+		Ingress:    deployment.GetDetails().IngressName,
+		ServiceUrl: deployment.GetService().GetServiceUrl(),
 	})
 	_ = deployment
 }
@@ -108,9 +105,13 @@ func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 		In-order to achieve it , there should be a session to service mapping done
 	*/
 	val := models.GetSessionIDObject(sessionId)
+	if val.Pod == "" || val.Service == "" || val.Ingress == "" {
+		send_Error_To_Client(w, fmt.Sprintf("Values came empty pod:%s service:%s ingress:%s", val.Pod, val.Service, val.Ingress), 422)
+		return
+	}
 	deployment := models.Deployment{}
 
-	response := models.DeleteSession(sessionId, "http://"+val.Service+":"+val.Port)
+	response := models.DeleteSession(sessionId, val.ServiceUrl+"/session/"+sessionId)
 
 	if response.GetErr() != nil {
 		send_Error_To_Client(w, response.GetErr().Error(), response.GetResponseCode())
@@ -119,4 +120,5 @@ func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 		w.Write(response.GetResponseData())
 	}
 	defer deployment.DeleteDeployment(val.Pod, val.Service, val.Ingress)
+	defer models.DeleteDBCell(sessionId)
 }

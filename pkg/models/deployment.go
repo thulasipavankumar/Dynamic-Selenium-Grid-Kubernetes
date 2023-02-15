@@ -57,11 +57,14 @@ func (d *Deployment) GetDetails() Details {
 }
 func (d *Deployment) DeleteDeployment(podName, serviceName, ingressName string) {
 	d.pod.SaveNamespaceDetails(namespace)
-	defer d.pod.Delete(podName)
+	d.pod.SetName(podName)
+	go d.pod.Delete()
 	d.ingress.SaveNamespaceDetails(namespace)
-	defer d.ingress.Delete(ingressName)
+	d.ingress.SetName(ingressName)
+	go d.ingress.Delete()
 	d.service.SaveNamespaceDetails(namespace)
-	defer d.service.Delete(serviceName)
+	d.service.SetName(serviceName)
+	go d.service.Delete(serviceName)
 }
 func (d *Deployment) LoadRequestedCapabilites(matched Match) error {
 	err := d.pod.PopulateImagesFronRequest(matched)

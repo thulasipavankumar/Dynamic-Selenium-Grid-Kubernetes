@@ -157,25 +157,30 @@ func (i *Ingress) SaveServiceAndSession(serviceName, sessionId, dynamicGridServi
 	i.createDeletePath(dynamicGridService, sessionId, dynamicGridServicePort)
 	//i.createDeletePathFor3(serviceName, sessionId)
 
-	log.Printf("Changed the Ingress annotaions:%v\n", metadata)
-
 }
-func (i *Ingress) Delete(ingressName string) error {
-	log.Println("Deleting Ingress", ingressName)
-	response := utils.Make_Delete_Call_With_Bearer(i.constructDeleteUrl(ingressName), i.namespaceDetails.Token)
+func (i *Ingress) Delete() error {
+	if i.Metadata.Name == "" {
+		return fmt.Errorf("ingress name cannot be empty for delete")
+	}
+	log.Println("Deleting Ingress", i.GetName())
+	response := utils.Make_Delete_Call_With_Bearer(i.constructDeleteUrl(), i.namespaceDetails.Token)
 	response.Printf("Ingress delete response:")
 	if response.Err != nil {
 		return response.Err
 	}
 	return nil
 }
+func (i *Ingress) SetName(ingressName string) {
+	i.Metadata.Name = ingressName
+
+}
 func (i *Ingress) constructUrl() (url string) {
 
 	return i.namespaceDetails.Url + "apis/networking.k8s.io/v1/namespaces/" + i.namespaceDetails.Namespace + "/ingresses/"
 }
-func (i *Ingress) constructDeleteUrl(ingressName string) (url string) {
+func (i *Ingress) constructDeleteUrl() (url string) {
 
-	return i.namespaceDetails.Url + "apis/networking.k8s.io/v1/namespaces/" + i.namespaceDetails.Namespace + "/ingresses/" + ingressName
+	return i.constructUrl() + i.GetName()
 }
 func (i *Ingress) Deploy() error {
 	log.Printf(" Ingress before deploy:%v\n", i)

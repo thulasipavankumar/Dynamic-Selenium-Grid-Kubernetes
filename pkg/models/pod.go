@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
@@ -119,20 +120,27 @@ type Env struct {
 	Value string `json:"value"`
 }
 
-func (p *Pod) Delete(podName string) error {
-	log.Println("Deleting Pod", podName)
-	response := utils.Make_Delete_Call_With_Bearer(p.constructDeleteUrl(podName), p.namespaceDetails.Token)
+func (p *Pod) Delete() error {
+	if p.Metadata.Name == "" {
+		return fmt.Errorf("pod name cannot be empty for delete")
+	}
+	log.Println("Deleting Pod", p.GetName())
+	response := utils.Make_Delete_Call_With_Bearer(p.constructDeleteUrl(), p.namespaceDetails.Token)
 	response.Printf("Pod delete response:")
 	if response.Err != nil {
 		return response.Err
 	}
 	return nil
 }
+func (p *Pod) SetName(podName string) {
+	p.Metadata.Name = podName
+
+}
 func (p *Pod) constructUrl() (url string) {
 	return p.namespaceDetails.Url + "api/v1/namespaces/" + p.namespaceDetails.Namespace + "/" + POD_URL_POSTFIX
 }
-func (p *Pod) constructDeleteUrl(podName string) (url string) {
-	return p.namespaceDetails.Url + "api/v1/namespaces/" + p.namespaceDetails.Namespace + "/" + POD_URL_POSTFIX + podName
+func (p *Pod) constructDeleteUrl() (url string) {
+	return p.constructUrl() + p.GetName()
 }
 func (p *Pod) appendHubContainer() {
 	hub := Container{}

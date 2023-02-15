@@ -5,14 +5,19 @@ import (
 	"strconv"
 )
 
-var Port int
-var Service string
+var port int
+var service string
 
 func init() {
-	Port, _ = strconv.Atoi(os.Getenv("Port"))
-	if Port == 0 {
-		Port = 8080
+	port, _ = strconv.Atoi(os.Getenv("Port"))
+	if port == 0 {
+		port = 8080
 	}
-	Service = os.Getenv("Service")
-
+	service = os.Getenv("Service")
+}
+func GetPort() int {
+	return port
+}
+func GetService() string {
+	return service
 }

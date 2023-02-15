@@ -41,7 +41,7 @@ func CreateSession(m []byte, posturl string) (response utils.Response) {
 		return utils.Response{ResData: response.GetResponseData(), Err: nil, ResponseCode: response.GetResponseCode()}
 
 	} else {
-		return utils.Response{ResData: nil, Err: fmt.Errorf("An error occurred whilemake json call status code is not 200"), ResponseCode: response.GetResponseCode()}
+		return utils.Response{ResData: nil, Err: fmt.Errorf("an error occurred whilemake json call status code is not 200"), ResponseCode: response.GetResponseCode()}
 	}
 
 }

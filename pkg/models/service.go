@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -40,6 +41,7 @@ type Port struct {
 	Name     string `json:"name"`
 }
 
+// TODO change the hardcoded values to config or fetch from service struct
 func (s *Service) GetServiceUrl() string {
 	return "http://" + s.GetName() + ":" + strconv.Itoa(HUB_PORT)
 }
@@ -56,21 +58,29 @@ func (s *Service) Init(c Common, n NamespaceDetails) {
 	spec.Ports = append(spec.Ports, Port{Port: c.Port, Protocol: constants.PROTOCOL, Name: c.App})
 	spec.Selector.App = c.App
 }
-func (s *Service) Delete(ServiceName string) error {
-	log.Println("Deleting Service", ServiceName)
-	response := utils.Make_Delete_Call_With_Bearer(s.constructDeleteUrl(ServiceName), s.namespaceDetails.Token)
+func (s *Service) Delete(string) error {
+	if s.Metadata.Name == "" {
+		return fmt.Errorf("service name cannot be empty for delete")
+	}
+	log.Println("Deleting Service", s.GetName())
+	response := utils.Make_Delete_Call_With_Bearer(s.constructDeleteUrl(), s.namespaceDetails.Token)
 	response.Printf("service delete response:")
 	if response.Err != nil {
 		return response.Err
 	}
 	return nil
 }
+func (s *Service) SetName(serviceName string) {
+	s.Metadata.Name = serviceName
+
+}
 func (s *Service) constructUrl() (url string) {
 	return s.namespaceDetails.Url + "api/v1/namespaces/" + s.namespaceDetails.Namespace + "/" + SERVICE_URL_POSTFIX
 }
-func (s *Service) constructDeleteUrl(serviceName string) (url string) {
-	return s.namespaceDetails.Url + "api/v1/namespaces/" + s.namespaceDetails.Namespace + "/" + SERVICE_URL_POSTFIX + serviceName
+func (s *Service) constructDeleteUrl() (url string) {
+	return s.constructUrl() + s.GetName()
 }
+
 func (s *Service) Deploy() error {
 	bytes, err := json.Marshal(s)
 	if err != nil {
