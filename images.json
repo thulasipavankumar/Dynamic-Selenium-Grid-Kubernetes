@@ -1,0 +1,53 @@
+{
+    "hub":[
+        {"3.0":"selenium:3.0","resources": {
+            "limits": {
+                "cpu": "300m",
+                "memory": "1000Mi"
+            },
+            "requests": {
+                "cpu": "100m",
+                "memory": "800Mi"
+            }
+        }},
+        {"4.0":"selenium/4.0","resources": {
+            "limits": {
+                "cpu": "300m",
+                "memory": "1000Mi"
+            },
+            "requests": {
+                "cpu": "100m",
+                "memory": "800Mi"
+            }
+        }}
+    ],
+    "node":{
+
+        "chrome":[
+            {"104.0":"selenium/chrome:104.0","resources": {
+                "limits": {
+                    "cpu": "300m",
+                    "memory": "1000Mi"
+                },
+                "requests": {
+                    "cpu": "100m",
+                    "memory": "800Mi"
+                }
+            }}
+        ],
+        "firefox":[
+            {"104.0":"selenium/firefox:104.0","resources": {
+                "limits": {
+                    "cpu": "300m",
+                    "memory": "1000Mi"
+                },
+                "requests": {
+                    "cpu": "100m",
+                    "memory": "800Mi"
+                }
+            }}
+        ]
+
+
+    }
+}

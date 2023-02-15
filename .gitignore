@@ -13,5 +13,17 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-
+#editor config file
 .vscode
+# unit test case results
+*.xml
+*.env
+pkg/models/*.json
+
+# Docker files
+Dockerfile
+.dockerignore
+
+#build file
+build.bat
+run.bat

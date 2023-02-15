@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 /*
 https://w3c.github.io/webdriver/#processing-capabilities
 
@@ -42,7 +44,15 @@ type Session struct {
 	} `json:"capabilities"`
 }
 
-type firstMatch struct {
+var defaultBrowserName, defaultBrowserVersion, defaultPlatformName string
+
+func init() {
+	defaultBrowserName = "chrome"
+	defaultBrowserVersion = "104.0"
+	defaultPlatformName = "linux"
+}
+
+type Match struct {
 	BrowserName    string `json:"browserName"`
 	BrowserVersion string `json:"browserVersion"`
 	PlatformName   string `json:"platformName"`
@@ -55,13 +65,22 @@ Negative scenario when the request cannot be fullfiled
 3. Overlapping Keys in "Always Match" and "First Match"
 */
 func (s Session) IsValidSession() bool {
-	if len(s.Capabilities.FirstMatch) == 0 {
-		return false
-	}
+
 	if s.Capabilities.AlwaysMatch.BrowserName == "" && s.Capabilities.AlwaysMatch.PlatformName == "" &&
-		s.Capabilities.AlwaysMatch.BrowserVersion == "" {
+		s.Capabilities.AlwaysMatch.BrowserVersion == "" && len(s.Capabilities.FirstMatch) == 0 {
 		return false
 	}
 	return true
+
+}
+func (s Session) GetValidatedSession() (Match, error) {
+	if s.IsValidSession() {
+		return Match{BrowserName: defaultBrowserName, BrowserVersion: defaultBrowserVersion, PlatformName: defaultPlatformName}, nil
+	} else {
+		return Match{}, fmt.Errorf("Not a valid session object")
+	}
+
+}
+func (s Session) experiment() {
 
 }
