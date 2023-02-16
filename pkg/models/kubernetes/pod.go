@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
+	selenium "github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models/selenium"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
 )
 
@@ -58,24 +59,19 @@ type Pod struct {
 		Containers    []Container `json:"containers"`
 		RestartPolicy string      `json:"restartPolicy"`
 	} `json:"spec"`
-	nodeImage string
-	hubImage  string
-}
-type Resource struct {
-	CPU    string `json:"cpu"`
-	Memory string `json:"memory"`
+	nodeImage      selenium.Image
+	hubImage       selenium.Image
+	BrowserName    string
+	BrowserVersion string
 }
 
 type Container struct {
-	Envs            []Env  `json:"env"`
-	Image           string `json:"image"`
-	ImagePullPolicy string `json:"imagePullPolicy"`
-	Name            string `json:"name"`
-	Resources       struct {
-		Limits   Resource `json:"limits"`
-		Requests Resource `json:"requests"`
-	} `json:"resources"`
-	Ports []PortStruct `json:"ports"`
+	Envs            []Env              `json:"env"`
+	Image           string             `json:"image"`
+	ImagePullPolicy string             `json:"imagePullPolicy"`
+	Name            string             `json:"name"`
+	Resources       selenium.Resources `json:"resources"`
+	Ports           []PortStruct       `json:"ports"`
 }
 
 type PortStruct struct {
@@ -94,25 +90,30 @@ func (p *Pod) Init(c Common, n NamespaceDetails) {
 	p.SetValues()
 
 }
-func (p *Pod) PopulateImagesFronRequest(m Match) error {
+func (p *Pod) PopulateImagesFronRequest(m selenium.Match) error {
 	var err error
-	p.hubImage, err = GetHubImage("4.0")
+	p.BrowserName = m.BrowserName
+	p.BrowserVersion = m.BrowserVersion
+	p.hubImage, err = selenium.GetHubImage("4.0")
 	if err != nil {
 		return err
 	}
 
 	if m.BrowserName == "chrome" {
-		p.nodeImage, _ = GetChromeNodeImage(m.BrowserVersion)
+		p.nodeImage, err = selenium.GetChromeNodeImage(m.BrowserVersion)
 		if err != nil {
 			return err
 		}
-	} else {
-		p.nodeImage, _ = GetFirefoxNodeImage(m.BrowserVersion)
+		return nil
+	} else if m.BrowserName == "firefox" {
+		p.nodeImage, err = selenium.GetFirefoxNodeImage(m.BrowserVersion)
 		if err != nil {
 			return err
 		}
+		return nil
 	}
-	return nil
+	return fmt.Errorf("browser not supported")
+
 }
 
 type Env struct {
@@ -144,12 +145,14 @@ func (p *Pod) constructDeleteUrl() (url string) {
 }
 func (p *Pod) appendHubContainer() {
 	hub := Container{}
-	requests := Resource{"300m", "500Mi"} // <----- CPU, RAM
-	limits := Resource{"300m", "500Mi"}   // <----- CPU, RAM
-	hub.Resources.Limits = limits
-	hub.Resources.Requests = requests
-	hub.Name = "selenium-hub" // <---- "<hub-name>"
-	hub.Image = p.hubImage    // <---- "<hub-image>"
+	//requests := Resource{"300m", "500Mi"} // <----- CPU, RAM
+	// limits := Resource{"300m", "500Mi"}   // <----- CPU, RAM
+	// hub.Resources.Limits = limits
+	//hub.Resources.Requests = requests
+	//hub.Resources.Limits = p.hubImage.ResourceObj
+	hub.Resources = p.hubImage.ResourceObj
+	hub.Name = "selenium-hub"         // <---- "<hub-name>"
+	hub.Image = p.hubImage.ImageValue // <---- "<hub-image>"  DEBuggggggggg
 	hub.Ports = append(hub.Ports, PortStruct{4444, constants.PROTOCOL})
 	hub.ImagePullPolicy = IMAGE_PULL_POLICY
 	p.Spec.Containers = append(p.Spec.Containers, hub)
@@ -178,13 +181,14 @@ func (p *Pod) appendNodeContainer() {
 		Env{"SE_NODE_MAX_SESSIONS", "1"},
 		Env{"SE_DRAIN_AFTER_SESSION_COUNT", "1"})
 	node.Envs = envArr
-	requests := Resource{"300m", "500Mi"} // <----- CPU, RAM
-	limits := Resource{"300m", "500Mi"}   // <----- CPU, RAM
-	node.Resources.Limits = limits
-	node.Resources.Requests = requests
-	node.Name = "selenium-node" // <----- "<node-name>"
+	// requests := Resource{"300m", "500Mi"} // <----- CPU, RAM
+	// //limits := Resource{"300m", "500Mi"}   // <----- CPU, RAM
+	// node.Resources.Requests = requests
+	// node.Resources.Limits = p.nodeImage.ResourceObj
+	node.Resources = p.nodeImage.ResourceObj
+	node.Name = "slenium-node" // <----- "<node-name>"
 	// <----- "<node-image>"
-	node.Image = p.nodeImage
+	node.Image = p.nodeImage.ImageValue
 	node.Ports = append(node.Ports, PortStruct{5555, constants.PROTOCOL})
 	node.ImagePullPolicy = IMAGE_PULL_POLICY
 	p.Spec.Containers = append(p.Spec.Containers, node)

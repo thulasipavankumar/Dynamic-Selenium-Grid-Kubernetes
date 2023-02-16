@@ -12,34 +12,36 @@ import (
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/config"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/constants"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models"
+	kubernetes "github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models/kubernetes"
+	selenium "github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models/selenium"
 )
 
 func init() {
 
 }
-func Create_selenium_Containers(match models.Match) (models.Deployment, error) {
+func Create_selenium_Containers(match selenium.Match) (kubernetes.Deployment, error) {
 	deployment := createDeployment()
 	err := deployment.LoadRequestedCapabilites(match)
 	if err != nil {
-		return models.Deployment{}, err
+		return kubernetes.Deployment{}, err
 	}
 	err = deployment.Deploy()
 	if err != nil {
-		return models.Deployment{}, err
+		return kubernetes.Deployment{}, err
 	}
 	return deployment, nil
 	//service := deployment.GetService()
 	//return service.GetServiceUrl()
 }
-func validate(w http.ResponseWriter, r *http.Request) (data []byte, matched models.Match, error bool) {
-	emptyMatch := models.Match{}
+func validate(w http.ResponseWriter, r *http.Request) (data []byte, matched selenium.Match, error bool) {
+	emptyMatch := selenium.Match{}
 	responseData, readerr := ioutil.ReadAll(r.Body)
 	if readerr != nil {
 		send_Error_To_Client(w, readerr.Error(), constants.Unable_TO_READ_REQUEST_DATA)
 		return nil, emptyMatch, true
 	}
 	log.Printf("Got data: %v \n", string(responseData))
-	session := models.Session{}
+	session := selenium.Session{}
 	unmarshalError := json.Unmarshal([]byte(responseData), &session)
 	if unmarshalError != nil {
 		send_Error_To_Client(w, unmarshalError.Error(), constants.Unable_TO_UNMARSHALL_JSON)
@@ -60,13 +62,14 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	}
 	deployment, createErr := Create_selenium_Containers(match)
 	if createErr != nil {
+		log.Println("Controller: error in creating deployment", createErr)
 		send_Error_To_Client(w, "UNABLE_TO_CREATE_DEPLOYMENT", constants.UNABLE_TO_CREATE_DEPLOYMENT)
 		return
 	}
 	service := deployment.GetService()
 	hubEndpoint := fmt.Sprintf("%s/session", service.GetServiceUrl()) // TODO replace the url later
 
-	session_result := models.CreateSession(responseData, hubEndpoint)
+	session_result := selenium.CreateSession(responseData, hubEndpoint)
 	// <--- get sessionId
 
 	if session_result.GetErr() != nil {
@@ -74,7 +77,7 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newSession := models.Selenium{}
+	newSession := selenium.Selenium{}
 
 	_ = json.Unmarshal([]byte(session_result.GetResponseData()), &newSession)
 	i := deployment.GetIngress()
@@ -87,11 +90,13 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(session_result.GetResponseData())
 	defer models.AddValuesToDB(models.DatabaseModel{
-		SessionID:  newSession.Value.SessionId,
-		Service:    deployment.GetDetails().ServiceName,
-		Pod:        deployment.GetDetails().PodName,
-		Ingress:    deployment.GetDetails().IngressName,
-		ServiceUrl: deployment.GetService().GetServiceUrl(),
+		SessionID:      newSession.Value.SessionId,
+		Service:        deployment.GetDetails().ServiceName,
+		Pod:            deployment.GetDetails().PodName,
+		Ingress:        deployment.GetDetails().IngressName,
+		ServiceUrl:     deployment.GetService().GetServiceUrl(),
+		Browser:        deployment.GetPod().BrowserName,
+		BrowserVersion: deployment.GetPod().BrowserVersion,
 	})
 	_ = deployment
 }
@@ -109,9 +114,9 @@ func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 		send_Error_To_Client(w, fmt.Sprintf("Values came empty pod:%s service:%s ingress:%s", val.Pod, val.Service, val.Ingress), 422)
 		return
 	}
-	deployment := models.Deployment{}
+	deployment := kubernetes.Deployment{}
 
-	response := models.DeleteSession(sessionId, val.ServiceUrl+"/session/"+sessionId)
+	response := selenium.DeleteSession(sessionId, val.ServiceUrl+"/session/"+sessionId)
 
 	if response.GetErr() != nil {
 		send_Error_To_Client(w, response.GetErr().Error(), response.GetResponseCode())

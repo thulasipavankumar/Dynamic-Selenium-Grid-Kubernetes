@@ -9,11 +9,13 @@ import (
 
 type DatabaseModel struct {
 	gorm.Model
-	SessionID  string `gorm:"primaryKey"`
-	Service    string
-	Pod        string
-	Ingress    string
-	ServiceUrl string
+	SessionID      string `gorm:"primaryKey"`
+	Service        string
+	Pod            string
+	Ingress        string
+	ServiceUrl     string
+	Browser        string
+	BrowserVersion string
 }
 
 // type Database struct {

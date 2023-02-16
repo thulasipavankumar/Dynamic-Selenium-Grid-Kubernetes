@@ -9,6 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/lithammer/shortuuid/v4"
+	selenium "github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models/selenium"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/utils"
 )
 
@@ -66,7 +67,7 @@ func (d *Deployment) DeleteDeployment(podName, serviceName, ingressName string) 
 	d.service.SetName(serviceName)
 	go d.service.Delete(serviceName)
 }
-func (d *Deployment) LoadRequestedCapabilites(matched Match) error {
+func (d *Deployment) LoadRequestedCapabilites(matched selenium.Match) error {
 	err := d.pod.PopulateImagesFronRequest(matched)
 	if err != nil {
 		return err
@@ -90,10 +91,12 @@ func (d *Deployment) Deploy() error {
 	//ingerssErr := d.deployIngress()
 	_, _ = serviceErr, podErr
 	if serviceErr != nil || podErr != nil {
-		return fmt.Errorf("Unable to create deployment")
+		fmt.Printf("Error in deployment  service:%v pod:%v\n", serviceErr, podErr)
+		return fmt.Errorf("deployment: Unable to create deployment")
 	}
 	podUpError := d.CheckIfDeploymentIsUp()
 	if podUpError != nil {
+		fmt.Printf("deployment: Error  cannot reach pod:%v\n", podUpError)
 		return fmt.Errorf("Pod is not up in 5min")
 	}
 	return nil
@@ -119,16 +122,16 @@ func (d *Deployment) DeployIngress() error {
 func (d *Deployment) CheckIfDeploymentIsUp() error {
 
 	count := 1
-	for {
+	sleep_time := 3 * time.Second
+	for count <= 20*5 { // 20 * 3 = 1 min  => * 5 = 5min
 		response := utils.Make_Get_Call(d.service.GetServiceUrl())
 
-		if response.ResponseCode == 302 || response.ResponseCode == 200 || count >= 6*5 {
+		if response.ResponseCode == 302 || response.ResponseCode == 200 {
 			response.Println("Success able to get responce ")
 			return nil
 
 		}
-		response.Printf("pod was not up:")
-		time.Sleep(10 * time.Second)
+		time.Sleep(sleep_time)
 		count++
 	}
 	fmt.Println("Unable to get responce from pod!!", d.service.GetServiceUrl())
