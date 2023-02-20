@@ -17,6 +17,11 @@ const (
 	POD_URL_POSTFIX   = "pods/"
 	IMAGE_PULL_POLICY = "Always"
 	RestartPolicy     = "Never"
+	HUB3              = "3.0"
+	HUB4              = "4.0"
+	DEFAULT_HUB       = HUB4
+	HUB3_SESSION_URL  = "wd/hub/session/"
+	HUB4_SESSION_URL  = "session/"
 )
 
 // Image constants
@@ -63,6 +68,7 @@ type Pod struct {
 	hubImage       selenium.Image
 	BrowserName    string
 	BrowserVersion string
+	isSel3         bool
 }
 
 type Container struct {
@@ -90,11 +96,28 @@ func (p *Pod) Init(c Common, n NamespaceDetails) {
 	p.SetValues()
 
 }
+func (p *Pod) SetToSel3() {
+	p.isSel3 = true
+}
+func (p *Pod) getHubVersion() string {
+	if p.isSel3 {
+		return HUB3
+	} else {
+		return HUB4
+	}
+}
+func (p *Pod) GetSessionPostfixUrl() string {
+	if p.isSel3 {
+		return HUB3_SESSION_URL
+	} else {
+		return HUB4_SESSION_URL
+	}
+}
 func (p *Pod) PopulateImagesFronRequest(m selenium.Match) error {
 	var err error
 	p.BrowserName = m.BrowserName
 	p.BrowserVersion = m.BrowserVersion
-	p.hubImage, err = selenium.GetHubImage("4.0")
+	p.hubImage, err = selenium.GetHubImage(p.getHubVersion())
 	if err != nil {
 		return err
 	}

@@ -19,15 +19,27 @@ import (
 func init() {
 
 }
-func Create_selenium_Containers(match selenium.Match) (kubernetes.Deployment, error) {
+func Create_selenium3_Containers(match selenium.Match) (*kubernetes.Deployment, error) {
 	deployment := createDeployment()
+	deployment.SetPodSel3()
+	return Create_selenium_Containers(match, &deployment)
+	//service := deployment.GetService()
+	//return service.GetServiceUrl()
+}
+func Create_selenium4_Containers(match selenium.Match) (*kubernetes.Deployment, error) {
+	deployment := createDeployment()
+	return Create_selenium_Containers(match, &deployment)
+	//service := deployment.GetService()
+	//return service.GetServiceUrl()
+}
+func Create_selenium_Containers(match selenium.Match, deployment *kubernetes.Deployment) (*kubernetes.Deployment, error) {
 	err := deployment.LoadRequestedCapabilites(match)
 	if err != nil {
-		return kubernetes.Deployment{}, err
+		return &kubernetes.Deployment{}, err
 	}
 	err = deployment.Deploy()
 	if err != nil {
-		return kubernetes.Deployment{}, err
+		return &kubernetes.Deployment{}, err
 	}
 	return deployment, nil
 	//service := deployment.GetService()
@@ -55,12 +67,20 @@ func validate(w http.ResponseWriter, r *http.Request) (data []byte, matched sele
 	_ = err
 	return responseData, match, false
 }
-func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
+func Create_Selenium_Session(w http.ResponseWriter, r *http.Request, isSel3 bool) {
 	responseData, match, err := validate(w, r)
 	if err {
+		send_Error_To_Client(w, "Validation of session capabilites failed", 422)
 		return
 	}
-	deployment, createErr := Create_selenium_Containers(match)
+	var deployment *kubernetes.Deployment
+	var createErr error
+	if isSel3 {
+		deployment, createErr = Create_selenium3_Containers(match)
+	} else {
+		deployment, createErr = Create_selenium4_Containers(match)
+	}
+
 	if createErr != nil {
 		log.Println("Controller: error in creating deployment", createErr)
 		send_Error_To_Client(w, "UNABLE_TO_CREATE_DEPLOYMENT", constants.UNABLE_TO_CREATE_DEPLOYMENT)
@@ -94,11 +114,19 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 		Service:        deployment.GetDetails().ServiceName,
 		Pod:            deployment.GetDetails().PodName,
 		Ingress:        deployment.GetDetails().IngressName,
-		ServiceUrl:     deployment.GetService().GetServiceUrl(),
+		SessionUrl:     deployment.GetService().GetSessionUrl(),
 		Browser:        deployment.GetPod().BrowserName,
 		BrowserVersion: deployment.GetPod().BrowserVersion,
 	})
 	_ = deployment
+}
+func Create_Selenium3_Session(w http.ResponseWriter, r *http.Request) {
+	isSel3 := true
+	Create_Selenium_Session(w, r, isSel3)
+}
+func Create_Selenium4_Session(w http.ResponseWriter, r *http.Request) {
+	isSel3 := false
+	Create_Selenium_Session(w, r, isSel3)
 }
 func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -116,7 +144,7 @@ func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	}
 	deployment := kubernetes.Deployment{}
 
-	response := selenium.DeleteSession(sessionId, val.ServiceUrl+"/session/"+sessionId)
+	response := selenium.DeleteSession(sessionId, val.SessionUrl+"/"+sessionId)
 
 	if response.GetErr() != nil {
 		send_Error_To_Client(w, response.GetErr().Error(), response.GetResponseCode())

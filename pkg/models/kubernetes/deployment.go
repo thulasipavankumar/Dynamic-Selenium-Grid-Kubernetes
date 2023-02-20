@@ -110,6 +110,15 @@ func (d *Deployment) Init(c Common) {
 	log.Printf("pod: %#v\nservice: %#v\ningress: %#v\n", d.pod, d.service, d.ingress)
 
 }
+func (d *Deployment) SetPodSel3() {
+	d.pod.SetToSel3()
+	d.service.SetToSel3()
+	d.ingress.SetToSel3()
+
+}
+func (d *Deployment) SetPodSel4() {
+	// nothing to do as of now
+}
 func (d *Deployment) deployPod() error {
 	return d.pod.Deploy()
 }

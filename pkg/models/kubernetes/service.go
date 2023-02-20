@@ -33,6 +33,7 @@ type Service struct {
 			App string `json:"app"`
 		} `json:"selector"`
 	} `json:"spec"`
+	isSel3 bool
 }
 
 type Port struct {
@@ -44,6 +45,19 @@ type Port struct {
 // TODO change the hardcoded values to config or fetch from service struct
 func (s *Service) GetServiceUrl() string {
 	return "http://" + s.GetName() + ":" + strconv.Itoa(HUB_PORT)
+}
+
+func (s *Service) GetSessionUrl() string {
+	prefix := s.GetServiceUrl()
+	if s.isSel3 {
+		return prefix + "/wd/hub/session"
+	} else {
+		return prefix + "/session"
+	}
+
+}
+func (s *Service) SetToSel3() {
+	s.isSel3 = true
 }
 func (s *Service) SaveNamespaceDetails(n NamespaceDetails) {
 	s.namespaceDetails = n

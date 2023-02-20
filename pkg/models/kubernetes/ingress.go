@@ -44,6 +44,7 @@ type Ingress struct {
 		} `json:"selector"`
 		Rules []Rule `json:"rules"`
 	} `json:"spec"`
+	isSel3 bool
 }
 type Rule struct {
 	HTTP HTTPStruct `json:"http"`
@@ -92,7 +93,7 @@ func (i *Ingress) createDeletePath(dynamicGridService, sessionId string, dynamic
 	// http.Paths = append(http.Paths, path)
 	// rule := &i.Spec.Rules[0]
 	// rule.HTTP.Paths = append(rule.HTTP.Paths, path)
-	i.addPath(dynamicGridService, fmt.Sprintf("%s/session/%v", base, sessionId), "Prefix", dynamicGridServicePort)
+	i.addPath(dynamicGridService, fmt.Sprintf("%s/session/%s", base, sessionId), "Prefix", dynamicGridServicePort)
 }
 func (i *Ingress) createSeleniumPathFor3(serviceName, sessionId string) {
 	// port := PortService{4444}
@@ -103,7 +104,7 @@ func (i *Ingress) createSeleniumPathFor3(serviceName, sessionId string) {
 	// http.Paths = append(http.Paths, path)
 	// rule := &i.Spec.Rules[0]
 	// rule.HTTP.Paths = append(rule.HTTP.Paths, path)
-	i.addPath(serviceName, fmt.Sprintf("%s/hub/session/%s/(.+)", base, sessionId), "Prefix", 4444)
+	i.addPath(serviceName, fmt.Sprintf("%s/wd/hub/session/%s/(.+)", base, sessionId), "Prefix", 4444)
 }
 func (i *Ingress) createDeletePathFor3(serviceName, sessionId string) {
 	// port := PortService{8080} // TODO read the port from config or pass onby parameters
@@ -114,7 +115,7 @@ func (i *Ingress) createDeletePathFor3(serviceName, sessionId string) {
 	// http.Paths = append(http.Paths, path)
 	// rule := &i.Spec.Rules[0]
 	// rule.HTTP.Paths = append(rule.HTTP.Paths, path)
-	i.addPath(serviceName, fmt.Sprintf("%s/hub/session/%v", base, sessionId), "Prefix", 8080)
+	i.addPath(serviceName, fmt.Sprintf("%s/wd/hub/session/%s", base, sessionId), "Prefix", 8080)
 }
 func (i *Ingress) addPath(serviceName, pathUrl, pathType string, servicePort int) {
 	port := PortService{servicePort} // TODO read the port from config or pass onby parameters
@@ -145,6 +146,9 @@ func (i *Ingress) Init(c Common, n NamespaceDetails) {
 	spec.Rules = append(spec.Rules, rule)
 
 }
+func (i *Ingress) SetToSel3() {
+	i.isSel3 = true
+}
 func (i *Ingress) SaveServiceAndSession(serviceName, sessionId, dynamicGridService string, dynamicGridServicePort int) {
 
 	metadata := &i.Metadata
@@ -152,10 +156,14 @@ func (i *Ingress) SaveServiceAndSession(serviceName, sessionId, dynamicGridServi
 	metadata.Annotations.NginxIngressKubernetesIoRewriteTarget = rewriteTarget
 
 	//TODO if serviceName or sessionId is empty throw error
-	i.createSeleniumPath(serviceName, sessionId)
-	//i.createSeleniumPathFor3(serviceName, sessionId)
-	i.createDeletePath(dynamicGridService, sessionId, dynamicGridServicePort)
-	//i.createDeletePathFor3(serviceName, sessionId)
+	if i.isSel3 {
+		i.createSeleniumPathFor3(serviceName, sessionId)
+		i.createDeletePathFor3(serviceName, sessionId)
+	} else {
+
+		i.createSeleniumPath(serviceName, sessionId)
+		i.createDeletePath(dynamicGridService, sessionId, dynamicGridServicePort)
+	}
 
 }
 func (i *Ingress) Delete() error {

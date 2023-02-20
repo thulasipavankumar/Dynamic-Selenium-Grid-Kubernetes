@@ -13,7 +13,7 @@ type DatabaseModel struct {
 	Service        string
 	Pod            string
 	Ingress        string
-	ServiceUrl     string
+	SessionUrl     string
 	Browser        string
 	BrowserVersion string
 }
@@ -47,4 +47,8 @@ func DeleteDBCell(sessionID string) {
 	var dbRow DatabaseModel
 	config.GetDB().Where("session_id =?", sessionID).Delete(dbRow)
 	log.Printf("Delete db row for %s : %v ", sessionID, dbRow)
+}
+func GetAllOpenSessions() (sessions []DatabaseModel) {
+	config.GetDB().Where("deleted_at IS NULL").Find(&sessions)
+	return
 }
