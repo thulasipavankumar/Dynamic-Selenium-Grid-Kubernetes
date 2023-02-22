@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/config"
+	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/misc"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models"
 	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/routes"
 )
@@ -29,7 +30,7 @@ func main() {
 	log.Println("Starting the server on ", config.GetService())
 	http.Handle("/", app)
 	log.Println("Server Started")
-
+	go misc.ExecuteCronJob()
 	log.Fatal(http.ListenAndServe(url, app))
 
 }

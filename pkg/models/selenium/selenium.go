@@ -21,6 +21,16 @@ type Selenium struct {
 	} `json:"value"`
 }
 
+type GridSessions struct {
+	Data struct {
+		Grid struct {
+			URI          string `json:"uri"`
+			MaxSession   int    `json:"maxSession"`
+			SessionCount int    `json:"sessionCount"`
+		} `json:"grid"`
+	} `json:"data"`
+}
+
 func CreateSession(m []byte, posturl string) (response utils.Response) {
 
 	response = utils.Make_Post_Call(posturl, m)

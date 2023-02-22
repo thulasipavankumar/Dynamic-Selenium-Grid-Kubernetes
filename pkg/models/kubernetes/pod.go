@@ -202,7 +202,7 @@ func (p *Pod) appendNodeContainer() {
 		Env{"SE_NODE_PORT", "5555"},
 		Env{"SE_NODE_SESSION_TIMEOUT", "600"},
 		Env{"SE_NODE_MAX_SESSIONS", "1"},
-		Env{"SE_DRAIN_AFTER_SESSION_COUNT", "1"})
+		Env{"SE_DRAIN_AFTER_SESSION_COUNT", "2"})
 	node.Envs = envArr
 	// requests := Resource{"300m", "500Mi"} // <----- CPU, RAM
 	// //limits := Resource{"300m", "500Mi"}   // <----- CPU, RAM

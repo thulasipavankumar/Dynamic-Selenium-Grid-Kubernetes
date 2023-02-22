@@ -117,6 +117,7 @@ func Create_Selenium_Session(w http.ResponseWriter, r *http.Request, isSel3 bool
 		SessionUrl:     deployment.GetService().GetSessionUrl(),
 		Browser:        deployment.GetPod().BrowserName,
 		BrowserVersion: deployment.GetPod().BrowserVersion,
+		CleanExit:      false,
 	})
 	_ = deployment
 }
@@ -154,4 +155,5 @@ func Delete_Selenium_Session(w http.ResponseWriter, r *http.Request) {
 	}
 	defer deployment.DeleteDeployment(val.Pod, val.Service, val.Ingress)
 	defer models.DeleteDBCell(sessionId)
+	models.UpdateCleanExit(true, sessionId)
 }

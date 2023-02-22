@@ -1,29 +1,25 @@
 package misc
 
 import (
-	"fmt"
-	"time"
+	"os"
+	"strconv"
 
 	"github.com/jasonlvhit/gocron"
-	"github.com/thulasipavankumar/Dynamic-Selenium-Grid-Kubernetes/pkg/models"
 )
 
-func getUnclosedSessionMoreThan3Minuts() {
-	sessions := models.GetAllOpenSessions()
+const (
+	CLEANUP_MINUTES_INTERVAL = 3
+)
 
-	for _, session := range sessions {
+var cleanupIntervalMinutes int
 
-		diff := time.Now().Sub(session.CreatedAt)
-		hours, minutes, seconds := diff.Hours(), diff.Minutes(), diff.Seconds()
-		if minutes > 3 {
-			fmt.Println("Succes found entry > 3 minutes ", session)
-
-		}
-		_, _ = hours, seconds
-
+func init() {
+	cleanupIntervalMinutes, _ = strconv.Atoi(os.Getenv("cleanupIntervalMinutes"))
+	if cleanupIntervalMinutes == 0 {
+		cleanupIntervalMinutes = CLEANUP_MINUTES_INTERVAL
 	}
 }
 func ExecuteCronJob() {
-	gocron.Every(3).Minutes().Do(getUnclosedSessionMoreThan3Minuts)
+	gocron.Every(uint64(cleanupIntervalMinutes)).Minutes().Do(ClearStaleSessions)
 	<-gocron.Start()
 }

@@ -16,6 +16,7 @@ type DatabaseModel struct {
 	SessionUrl     string
 	Browser        string
 	BrowserVersion string
+	CleanExit      bool
 }
 
 // type Database struct {
@@ -42,6 +43,12 @@ func GetSessionIDObject(sessionID string) (dbVal DatabaseModel) {
 	config.GetDB().Where("session_id =?", sessionID).Find(&dbVal)
 	log.Printf("Got the session:%s object:%v", sessionID, dbVal)
 	return
+}
+func UpdateCleanExit(flag bool, sessionID string) {
+	var dbVal DatabaseModel
+	config.GetDB().Where("session_id =?", sessionID).Find(&dbVal)
+	dbVal.CleanExit = flag
+	config.GetDB().Save(&dbVal)
 }
 func DeleteDBCell(sessionID string) {
 	var dbRow DatabaseModel
